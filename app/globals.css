@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* ---------------------------------------------------------------------------
+   BASE
+   Restraint is the brief. Almost nothing here is decorative; it exists to make
+   text legible, focus obvious, and layout stable while photography loads.
+   ------------------------------------------------------------------------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    text-wrap: balance;
+    letter-spacing: var(--tracking-tightest);
+    font-weight: 400;
+  }
+  p { text-wrap: pretty; }
+
+  /* Focus: one ring, everywhere, always visible. Teal reads 11.48:1 on the page
+     ground and 3:1+ against product photography thanks to the white offset. */
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* Inputs inherit type — browsers do not do this for you. */
+  input, select, textarea, button { font: inherit; color: inherit; }
+
+  ::selection { background: var(--color-surface-brand-wash); color: var(--color-ink); }
+
+  /* Reserve gutters so a scrollbar appearing cannot shift layout (CLS). */
+  html { scrollbar-gutter: stable; }
+
+  img { max-width: 100%; height: auto; }
+}
+
+@layer components {
+  /* Skip link — first tab stop on every page. */
+  .skip-link {
+    position: absolute; left: 0.5rem; top: -100%;
+    z-index: 100; padding: 0.75rem 1.25rem;
+    background: var(--color-surface-brand); color: var(--color-ink-on-brand);
+    border-radius: var(--radius-md);
+    transition: top 150ms var(--ease-out-soft);
+  }
+  .skip-link:focus { top: 0.5rem; }
+
+  /* The copper hairline. This is the accent's main job on the whole site. */
+  .rule-accent {
+    border: 0; height: 1px; width: 3rem;
+    background: var(--color-accent-rule);
+  }
+
+  .eyebrow {
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    font-weight: 500;
+  }
+
+  .prose-editorial { max-width: var(--container-prose); }
+  .prose-editorial p + p { margin-top: 1.25em; }
+}
+
+@layer utilities {
+  .container-page {
+    width: 100%;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) { .container-page { padding-inline: 2rem; } }
+
+  /* Aspect boxes for imagery — dimensions are always reserved before load. */
+  .media-portrait { aspect-ratio: 4 / 5; }
+  .media-square   { aspect-ratio: 1 / 1; }
+  .media-wide     { aspect-ratio: 16 / 9; }
+
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+  }
+}

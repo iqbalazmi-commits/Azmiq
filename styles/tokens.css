@@ -1,0 +1,114 @@
+/* ============================================================================
+   AZMIQ DESIGN TOKENS  —  single source of truth
+   ----------------------------------------------------------------------------
+   Components must never contain a hex literal. Reference semantic tokens only.
+   Every pair below has been measured against WCAG 2.1 AA (4.5:1 text, 3:1 UI).
+   Measured ratios are recorded inline so a future change can be checked fast.
+   Run `npm run test:contrast` to re-verify after any edit.
+   ========================================================================== */
+
+@theme {
+  /* --- 1. RAW PALETTE -------------------------------------------------------
+     Brand primitives. Never referenced directly by a component — only by the
+     semantic layer below. Renaming a primitive must not break a component. */
+  --azmiq-teal:        #0E3B43;  /* Deep Teal-Blue  — PRIMARY */
+  --azmiq-teal-deep:   #0A2C32;  /* pressed / hover */
+  --azmiq-teal-wash:   #E7EEEF;  /* tint for quiet brand surfaces */
+  --azmiq-green:       #2F5D50;  /* Forest Green    — SECONDARY */
+  --azmiq-green-deep:  #244A40;
+  --azmiq-sage:        #8FA99B;  /* Sage — surfaces & dividers ONLY */
+  --azmiq-sage-tint:   #EEF2EF;  /* section background */
+  --azmiq-sage-deep:   #6E8579;  /* control borders — 3.74:1 on warm white */
+  --azmiq-black:       #14181A;  /* Near-Black */
+  --azmiq-warm-white:  #FAF8F5;  /* Warm White — page ground */
+  --azmiq-white:       #FFFFFF;  /* Pure White — cards */
+  --azmiq-copper:      #B87333;  /* ACCENT ONLY — under 2% of any screen */
+  --azmiq-copper-deep: #94591F;
+  --azmiq-slate:       #55666B;  /* muted ink — 5.66:1 on warm white */
+  --azmiq-red:         #B3261E;  /* ERRORS ONLY. Never for sale/urgency. */
+
+  /* --- 2. SEMANTIC SURFACES -------------------------------------------------
+     Roughly 70% of any screen is surface/surface-raised. That ratio is the
+     whole premise of the design: the interface recedes, photography carries. */
+  --color-surface:         var(--azmiq-warm-white);
+  --color-surface-raised:  var(--azmiq-white);      /* cards, product tiles */
+  --color-surface-sunken:  var(--azmiq-sage-tint);  /* wellness sections */
+  --color-surface-inverse: var(--azmiq-black);      /* full-bleed editorial */
+  --color-surface-brand:   var(--azmiq-teal);       /* header, footer, buttons */
+  --color-surface-brand-hover: var(--azmiq-teal-deep);
+  --color-surface-brand-wash:  var(--azmiq-teal-wash);
+  --color-surface-wellness:      var(--azmiq-green);
+  --color-surface-wellness-hover: var(--azmiq-green-deep);
+  --color-surface-accent:  var(--azmiq-copper);     /* sale badge ground only */
+
+  /* --- 3. SEMANTIC INK ------------------------------------------------------ */
+  --color-ink:            var(--azmiq-black);       /* 16.86:1 on surface  AA */
+  --color-ink-muted:      var(--azmiq-slate);       /*  5.66:1 on surface  AA */
+  --color-ink-inverse:    var(--azmiq-warm-white);  /* 16.86:1 on inverse  AA */
+  --color-ink-brand:      var(--azmiq-teal);        /* 11.48:1 on surface  AA */
+  --color-ink-wellness:   var(--azmiq-green);       /*  7.07:1 on surface  AA */
+  --color-ink-on-brand:   var(--azmiq-white);       /* 12.17:1 on teal     AA */
+  --color-ink-on-accent:  var(--azmiq-black);       /*  4.71:1 on copper   AA */
+  /* Sage measures 2.38:1 on warm white. It is a SURFACE token, never ink on a
+     light ground. On --color-surface-inverse it reaches 7.08:1, so: */
+  --color-ink-on-inverse-muted: var(--azmiq-sage);  /*  7.08:1 on inverse  AA */
+
+  /* --- 4. ACCENT ------------------------------------------------------------
+     Copper is 3.58:1 on warm white — it FAILS AA as body text. It is permitted
+     only as: a hairline rule, an icon stroke, a border, large display text
+     (>=24px), or a background carrying --color-ink-on-accent. */
+  --color-accent:        var(--azmiq-copper);
+  --color-accent-hover:  var(--azmiq-copper-deep);
+  --color-accent-rule:   var(--azmiq-copper);
+
+  /* --- 5. BORDERS & FOCUS --------------------------------------------------- */
+  --color-border:         #E3DED6;              /* decorative hairline */
+  --color-border-strong:  #C9C2B8;              /* decorative, heavier */
+  --color-border-control: var(--azmiq-sage-deep); /* 3.74:1 — inputs, AA UI */
+  --color-focus:          var(--azmiq-teal);    /* 11.48:1 — always visible */
+
+  /* --- 6. STATE -------------------------------------------------------------
+     Success and in-stock are GREEN, not red-adjacent. Red is reserved so that
+     when a customer does see it, it means something went wrong. */
+  --color-success:      var(--azmiq-green);
+  --color-success-wash: var(--azmiq-sage-tint);
+  --color-danger:       var(--azmiq-red);       /* 6.17:1 on surface   AA */
+  --color-danger-wash:  #FBEDEC;
+
+  /* --- 7. TYPE --------------------------------------------------------------
+     Refined serif for craft and tradition; geometric sans for the contemporary
+     half. Fallback metrics are tuned in globals.css to hold CLS at zero. */
+  --font-serif: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans:  var(--font-hanken), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --text-2xs:  0.6875rem;  --text-2xs--line-height: 1.45;
+  --text-xs:   0.75rem;    --text-xs--line-height:  1.5;
+  --text-sm:   0.875rem;   --text-sm--line-height:  1.6;
+  --text-base: 1rem;       --text-base--line-height: 1.7;   /* generous */
+  --text-lg:   1.125rem;   --text-lg--line-height:  1.7;
+  --text-xl:   1.375rem;   --text-xl--line-height:  1.45;
+  --text-2xl:  1.75rem;    --text-2xl--line-height: 1.3;
+  --text-3xl:  2.25rem;    --text-3xl--line-height: 1.2;
+  --text-4xl:  3rem;       --text-4xl--line-height: 1.1;
+  --text-5xl:  4rem;       --text-5xl--line-height: 1.04;
+
+  --tracking-tightest: -0.03em;
+  --tracking-wide:      0.02em;
+  --tracking-widest:    0.16em;   /* eyebrow labels */
+
+  /* --- 8. SPACE, RADIUS, SHADOW --------------------------------------------
+     Shadows are warm-tinted. A neutral grey shadow makes copper look dirty. */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  --shadow-card:  0 1px 2px rgb(20 24 26 / 0.04), 0 8px 24px -12px rgb(20 24 26 / 0.10);
+  --shadow-lift:  0 2px 4px rgb(20 24 26 / 0.05), 0 18px 40px -18px rgb(20 24 26 / 0.16);
+  --shadow-panel: 0 24px 60px -24px rgb(20 24 26 / 0.28);
+
+  --container-page: 80rem;
+  --container-prose: 42rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}

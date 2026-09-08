@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img">
+
+  <defs>
+    <linearGradient id="copper" x1="0" y1="0" x2="1" y2="0.3">
+      <stop offset="0"    stop-color="#7E4318"/>
+      <stop offset="0.18" stop-color="#C98346"/>
+      <stop offset="0.34" stop-color="#F0BE86"/>
+      <stop offset="0.46" stop-color="#C77F3F"/>
+      <stop offset="0.72" stop-color="#A25F26"/>
+      <stop offset="0.88" stop-color="#D69A5C"/>
+      <stop offset="1"    stop-color="#6E3A15"/>
+    </linearGradient>
+    <linearGradient id="copperSoft" x1="0" y1="0" x2="1" y2="0.2">
+      <stop offset="0"    stop-color="#8A4C1C"/>
+      <stop offset="0.3"  stop-color="#D79A5E"/>
+      <stop offset="0.55" stop-color="#B87333"/>
+      <stop offset="1"    stop-color="#753F17"/>
+    </linearGradient>
+    <linearGradient id="acacia" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0"   stop-color="#9C6B3F"/>
+      <stop offset="0.5" stop-color="#C08E5A"/>
+      <stop offset="1"   stop-color="#7E5330"/>
+    </linearGradient>
+    <linearGradient id="linen" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#EFE9E0"/>
+      <stop offset="1" stop-color="#E3DACD"/>
+    </linearGradient>
+    <radialGradient id="sidelight" cx="0.28" cy="0.28" r="0.85">
+      <stop offset="0"   stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="1"   stop-color="#8A7F70" stop-opacity="0.16"/>
+    </radialGradient>
+    <radialGradient id="contactShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0"   stop-color="#14181A" stop-opacity="0.36"/>
+      <stop offset="0.6" stop-color="#14181A" stop-opacity="0.12"/>
+      <stop offset="1"   stop-color="#14181A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="3192"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.055"/></feComponentTransfer>
+    </filter>
+    <filter id="weave">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.6" numOctaves="2" seed="3199"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.07"/></feComponentTransfer>
+    </filter>
+    <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="16" dy="26" stdDeviation="22" flood-color="#14181A" flood-opacity="0.20"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#linen)"/>
+  <rect width="1200" height="1500" filter="url(#weave)" opacity="0.9"/>
+  <rect y="1110" width="1200" height="390" fill="#E3DACD" opacity="0.55"/>
+  <rect width="1200" height="1500" fill="url(#sidelight)"/>
+<g opacity="0.30" fill="#14181A">
+  <path d="M 840 990
+    C 800 900, 796 810, 820 750
+    C 832 708, 866 700, 874 744
+    L 884 820
+    C 902 786, 936 794, 932 842
+    L 924 904
+    C 936 940, 924 990, 894 1012 Z"/>
+</g>
+<ellipse cx="612" cy="1090" rx="416.64000000000004" ry="22" fill="url(#contactShadow)"/><g filter="url(#softShadow)"><rect x="228" y="630" width="744" height="450" rx="26" fill="url(#acacia)"/><path d="M 236 722.6 Q 600 723.0, 964 722.6" stroke="#5E3D22" stroke-opacity="0.162" stroke-width="1.7" fill="none"/><path d="M 236 1051.2 Q 600 1043.9, 964 1051.2" stroke="#5E3D22" stroke-opacity="0.177" stroke-width="2.8" fill="none"/><path d="M 236 1005.8 Q 600 1000.3, 964 1005.8" stroke="#5E3D22" stroke-opacity="0.069" stroke-width="1.3" fill="none"/><path d="M 236 836.1 Q 600 836.2, 964 836.1" stroke="#5E3D22" stroke-opacity="0.149" stroke-width="3.2" fill="none"/><path d="M 236 955.6 Q 600 952.9, 964 955.6" stroke="#5E3D22" stroke-opacity="0.114" stroke-width="3.3" fill="none"/><path d="M 236 818.5 Q 600 820.4, 964 818.5" stroke="#5E3D22" stroke-opacity="0.096" stroke-width="1.4" fill="none"/><path d="M 236 973.5 Q 600 960.8, 964 973.5" stroke="#5E3D22" stroke-opacity="0.096" stroke-width="1.8" fill="none"/><path d="M 236 961.8 Q 600 965.2, 964 961.8" stroke="#5E3D22" stroke-opacity="0.082" stroke-width="1.2" fill="none"/><path d="M 236 856.8 Q 600 868.5, 964 856.8" stroke="#5E3D22" stroke-opacity="0.139" stroke-width="1.2" fill="none"/><path d="M 236 925.1 Q 600 913.9, 964 925.1" stroke="#5E3D22" stroke-opacity="0.102" stroke-width="3.3" fill="none"/><path d="M 236 884.4 Q 600 878.7, 964 884.4" stroke="#5E3D22" stroke-opacity="0.152" stroke-width="1.6" fill="none"/><path d="M 236 836.3 Q 600 828.5, 964 836.3" stroke="#5E3D22" stroke-opacity="0.136" stroke-width="2.5" fill="none"/><path d="M 236 872.9 Q 600 861.0, 964 872.9" stroke="#5E3D22" stroke-opacity="0.095" stroke-width="2.5" fill="none"/><path d="M 236 1019.3 Q 600 1026.5, 964 1019.3" stroke="#5E3D22" stroke-opacity="0.172" stroke-width="1.8" fill="none"/><path d="M 236 732.0 Q 600 730.8, 964 732.0" stroke="#5E3D22" stroke-opacity="0.110" stroke-width="1.9" fill="none"/><path d="M 236 915.0 Q 600 925.9, 964 915.0" stroke="#5E3D22" stroke-opacity="0.129" stroke-width="2.1" fill="none"/><path d="M 236 1034.9 Q 600 1023.0, 964 1034.9" stroke="#5E3D22" stroke-opacity="0.093" stroke-width="1.9" fill="none"/><path d="M 236 809.3 Q 600 802.2, 964 809.3" stroke="#5E3D22" stroke-opacity="0.100" stroke-width="1.5" fill="none"/><path d="M 236 709.8 Q 600 712.6, 964 709.8" stroke="#5E3D22" stroke-opacity="0.089" stroke-width="2.9" fill="none"/><path d="M 236 672.6 Q 600 668.9, 964 672.6" stroke="#5E3D22" stroke-opacity="0.117" stroke-width="1.2" fill="none"/><path d="M 236 820.2 Q 600 825.2, 964 820.2" stroke="#5E3D22" stroke-opacity="0.082" stroke-width="2.3" fill="none"/><path d="M 236 991.6 Q 600 982.0, 964 991.6" stroke="#5E3D22" stroke-opacity="0.126" stroke-width="1.8" fill="none"/><path d="M 236 740.4 Q 600 738.9, 964 740.4" stroke="#5E3D22" stroke-opacity="0.111" stroke-width="3.0" fill="none"/><path d="M 236 701.1 Q 600 688.1, 964 701.1" stroke="#5E3D22" stroke-opacity="0.082" stroke-width="1.5" fill="none"/><path d="M 236 689.5 Q 600 682.2, 964 689.5" stroke="#5E3D22" stroke-opacity="0.133" stroke-width="1.8" fill="none"/><path d="M 236 882.4 Q 600 874.3, 964 882.4" stroke="#5E3D22" stroke-opacity="0.098" stroke-width="3.0" fill="none"/><circle cx="920" cy="674" r="13" fill="#5E3D22" opacity="0.5"/></g>
+<rect width="1200" height="1500" filter="url(#grain)" opacity="0.5"/></svg>

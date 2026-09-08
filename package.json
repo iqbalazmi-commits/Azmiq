@@ -1,0 +1,48 @@
+{
+  "name": "azmiq-store",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "art:generate": "tsx scripts/generate-art.ts",
+    "test:contrast": "tsx scripts/check-contrast.ts",
+    "setup": "npm run art:generate && npm run db:migrate && npm run db:seed"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "@stripe/react-stripe-js": "^3.1.1",
+    "@stripe/stripe-js": "^5.5.0",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.38.3",
+    "eslint-config-next": "^16.3.4",
+    "lucide-react": "^0.469.0",
+    "next": "^16.3.4",
+    "postgres": "^3.4.5",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "stripe": "^17.5.0",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.5",
+    "@types/react-dom": "^19.0.3",
+    "drizzle-kit": "^0.30.1",
+    "eslint": "^9.18.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
