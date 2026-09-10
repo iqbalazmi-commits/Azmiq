@@ -209,21 +209,20 @@ export const CONTENT: Record<string, ContentPage> = {
     sections: [
       {
         body: [
-          "Orders placed before 1pm on a working day are dispatched the same day. Everything is sent tracked, and everything is packed plastic-free.",
+          "Everything is sent tracked, and everything is packed plastic-free. Allow 7 to 11 working days from order to doorstep, wherever you are.",
         ],
       },
       {
         heading: "United Kingdom",
         list: [
-          "Standard, Royal Mail Tracked 48 - £3.95, 2 to 4 working days. Free on orders over £50.",
-          "Express, Royal Mail Tracked 24 - £6.95, 1 to 2 working days.",
+          "Tracked - £3.95, 7 to 11 working days. Free on orders over £50.",
         ],
         body: [],
       },
       {
         heading: "Europe",
         list: [
-          "Tracked with DHL - £9.95, 3 to 7 working days. Free on orders over £120.",
+          "Tracked with DHL - £9.95, 7 to 11 working days. Free on orders over £120.",
           "For orders under €150 we collect import VAT at checkout under IOSS, so there is nothing to pay on delivery.",
           "For orders over €150 the carrier collects import VAT and any customs charge before delivery.",
         ],
@@ -232,7 +231,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "Rest of world",
         list: [
-          "DHL Express, fully tracked - £18.95, 5 to 12 working days.",
+          "DHL Express, fully tracked - £18.95, 7 to 11 working days.",
           "Shipped duties unpaid. UK VAT is removed at checkout, and import duties and local taxes are payable to the carrier on delivery.",
         ],
         body: [],
@@ -246,7 +245,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "If it does not arrive",
         body: [
-          "Tracking sometimes stalls before it updates. If a UK parcel has not moved for three working days, or an international one for seven, email us and we will chase it or send a replacement.",
+          "Tracking sometimes stalls before it updates. If a parcel has not moved for seven working days, email us and we will chase it or send a replacement.",
         ],
       },
     ],

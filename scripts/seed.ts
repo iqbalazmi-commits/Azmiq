@@ -184,10 +184,11 @@ async function main() {
   }).returning();
 
   await db.insert(t.shippingRates).values([
-    { zoneId: uk.id, name: "Standard", description: "Royal Mail Tracked 48", amount: 395, freeOver: 5000, minDeliveryDays: 2, maxDeliveryDays: 4, position: 0 },
-    { zoneId: uk.id, name: "Express", description: "Royal Mail Tracked 24", amount: 695, freeOver: null, minDeliveryDays: 1, maxDeliveryDays: 2, position: 1 },
-    { zoneId: eu.id, name: "Europe tracked", description: "DHL, fully tracked", amount: 995, freeOver: 12000, minDeliveryDays: 3, maxDeliveryDays: 7, position: 0 },
-    { zoneId: row.id, name: "International tracked", description: "DHL Express, fully tracked", amount: 1895, freeOver: null, minDeliveryDays: 5, maxDeliveryDays: 12, position: 0 },
+    // One promise everywhere: stock ships from a single place, so a next-day
+    // option would be a promise we could not keep. 7-11 working days.
+    { zoneId: uk.id, name: "Standard", description: "Tracked", amount: 395, freeOver: 5000, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
+    { zoneId: eu.id, name: "Europe tracked", description: "DHL, fully tracked", amount: 995, freeOver: 12000, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
+    { zoneId: row.id, name: "International tracked", description: "DHL Express, fully tracked", amount: 1895, freeOver: null, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
   ]);
   console.log("  3 shipping zones, 4 rates");
 
