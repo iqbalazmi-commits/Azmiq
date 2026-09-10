@@ -115,13 +115,13 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
           <ul className="mt-8 grid gap-3 border-t border-border pt-7 text-sm sm:grid-cols-2">
             {(isApparel
               ? [
-                  { Icon: Truck, text: "£5 worldwide delivery, free UK over £50" },
+                  { Icon: Truck, text: "£10 worldwide delivery, free UK over £50" },
                   { Icon: RotateCcw, text: "30-day returns, free" },
                   { Icon: PackageCheck, text: "Genuine leather" },
                   { Icon: Leaf, text: "Ships in a protective bag" },
                 ]
               : [
-                  { Icon: Truck, text: "£5 worldwide delivery, free UK over £50" },
+                  { Icon: Truck, text: "£10 worldwide delivery, free UK over £50" },
                   { Icon: RotateCcw, text: "30-day returns, free" },
                   { Icon: PackageCheck, text: "Leak-proof, bag-tested" },
                   { Icon: Leaf, text: "Plastic-free packaging" },

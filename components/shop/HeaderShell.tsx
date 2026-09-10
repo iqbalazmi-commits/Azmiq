@@ -35,7 +35,7 @@ export function HeaderShell({
     <>
       <div className="border-b border-[color-mix(in_srgb,var(--color-accent-gold)_30%,transparent)] bg-surface-inverse text-ink-inverse">
         <p className="container-page py-2.5 text-center text-2xs uppercase tracking-widest text-ink-inverse/80">
-          £5 delivery worldwide &nbsp;·&nbsp; Free UK over £50 &nbsp;·&nbsp; 30-day returns
+          £10 delivery worldwide &nbsp;·&nbsp; Free UK over £50 &nbsp;·&nbsp; 30-day returns
         </p>
       </div>
 
