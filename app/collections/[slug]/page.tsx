@@ -110,21 +110,23 @@ export default async function CollectionPage({
       <JsonLd data={itemListJsonLd(products, category.title)} />
       {hasFilters ? <meta name="robots" content="noindex, follow" /> : null}
 
-      <div className="container-page pb-24 pt-8">
+      <div className="container-page pb-28 pt-14 md:pt-20">
         <Breadcrumbs trail={trail} />
 
-        <header className="mt-8 max-w-2xl">
-          <h1 className="font-serif text-4xl leading-tight text-ink">{category.title}</h1>
+        <header className="mt-10 max-w-2xl">
+          <h1 className="font-serif text-4xl leading-[1.05] tracking-tightest text-ink md:text-5xl">
+            {category.title}
+          </h1>
           {category.subtitle ? (
-            <p className="mt-2 text-lg text-ink-muted">{category.subtitle}</p>
+            <p className="mt-3 text-lg text-ink-muted">{category.subtitle}</p>
           ) : null}
           {category.description ? (
-            <p className="mt-5 leading-relaxed text-ink-muted">{category.description}</p>
+            <p className="mt-6 leading-relaxed text-ink-muted">{category.description}</p>
           ) : null}
-          <hr className="rule-accent mt-8" />
+          <hr className="rule-accent mt-9" />
         </header>
 
-        <div className="mt-12 grid gap-x-12 gap-y-10 lg:grid-cols-[15rem_1fr]">
+        <div className="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-[15rem_1fr]">
           <Filters
             basePath={basePath}
             params={query}
@@ -147,7 +149,7 @@ export default async function CollectionPage({
                 </p>
               </div>
             ) : (
-              <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-12 xl:grid-cols-3 xl:gap-x-8">
+              <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-16 xl:grid-cols-3 xl:gap-x-8">
                 {products.map((product, i) => (
                   <ProductCard
                     key={product.id}

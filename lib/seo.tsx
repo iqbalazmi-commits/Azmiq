@@ -120,8 +120,19 @@ export function organisationJsonLd() {
     url: SITE.url,
     description: SITE.description,
     email: SITE.email,
+    telephone: SITE.phone,
     slogan: SITE.tagline,
+    logo: `${SITE.url}/brand/azmiq-logo.png`,
+    sameAs: [SITE.social.instagram, SITE.social.facebook],
     address: { "@type": "PostalAddress", addressCountry: "GB" },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: SITE.email,
+      telephone: SITE.phone,
+      areaServed: "GB",
+      availableLanguage: "English",
+    },
   };
 }
 

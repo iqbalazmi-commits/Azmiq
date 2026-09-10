@@ -205,6 +205,9 @@ export const orders = pgTable("orders", {
   status: text("status").notNull().default("pending"),
   // pending | paid | fulfilled | cancelled | refunded | partially_refunded
   paymentStatus: text("payment_status").notNull().default("awaiting_payment"),
+  // card | bank_transfer. Bank transfers are confirmed by hand in the admin
+  // once the money lands, so they never reach the Stripe webhook.
+  paymentMethod: text("payment_method").notNull().default("card"),
   fulfillmentStatus: text("fulfillment_status").notNull().default("unfulfilled"),
   currency: text("currency").notNull().default("GBP"),
   subtotal: integer("subtotal").notNull(),

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  ArrowLeftRight, BadgePercent, Boxes, LayoutDashboard, LogOut,
+  ArrowLeftRight, BadgePercent, Boxes, CreditCard, LayoutDashboard, LogOut,
   MessageSquareQuote, Package, RotateCcw,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/auth";
@@ -24,6 +24,7 @@ const NAV = [
   { href: "/admin/reviews", label: "Reviews", Icon: MessageSquareQuote },
   { href: "/admin/returns", label: "Returns", Icon: RotateCcw },
   { href: "/admin/redirects", label: "Redirects", Icon: ArrowLeftRight },
+  { href: "/admin/payments", label: "Payments", Icon: CreditCard },
 ];
 
 /* The sign-in page lives under /admin too, so the guard has to let it

@@ -1,30 +1,30 @@
 import Link from "next/link";
 import { Media } from "@/components/ui/Media";
-import { FromPrice } from "@/components/ui/Price";
-import { Rating } from "@/components/ui/Rating";
-import { percentSaved } from "@/lib/money";
+import { formatMoney, isOnSale } from "@/lib/money";
 import type { CatalogueProduct } from "@/lib/data";
 
-/* A product tile on warm white. The card itself is pure white with a hairline
-   border - no drop shadow at rest, because a grid of floating cards competes
-   with the photography for depth and the photography must win. */
+/* An editorial product tile. The image carries the card: no border, no drop
+   shadow, no sale flag shouting over the photograph. Title in the serif, price
+   quiet beneath. A second image, where the product has one, cross-fades on
+   hover. Everything else recedes so a grid of these reads as a lookbook. */
 
 export function ProductCard({
   product,
   priority = false,
-  sizes = "(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw",
+  sizes = "(min-width: 1280px) 24vw, (min-width: 768px) 32vw, 46vw",
 }: {
   product: CatalogueProduct;
   priority?: boolean;
   sizes?: string;
 }) {
   const hero = product.images[0];
-  const saved = percentSaved(product.from.amount, product.from.compareAt);
+  const alt = product.images.find((i) => i.kind === "lifestyle") ?? product.images[1];
   const multiple = product.variants.length > 1;
+  const onSale = isOnSale(product.from.amount, product.from.compareAt);
 
   return (
     <article className="group relative flex flex-col">
-      <div className="relative overflow-hidden rounded-lg border border-border bg-surface-raised">
+      <div className="relative overflow-hidden rounded-lg bg-surface-raised">
         {hero ? (
           <Media
             src={hero.url}
@@ -34,50 +34,56 @@ export function ProductCard({
             sizes={sizes}
             priority={priority}
             aspect="portrait"
-            imgClassName="transition-transform duration-700 ease-out-soft group-hover:scale-[1.03]"
+            imgClassName={
+              "transition-[transform,opacity] duration-[900ms] ease-out-soft " +
+              (alt ? "group-hover:opacity-0" : "group-hover:scale-[1.035]")
+            }
           />
         ) : (
           <div className="media-portrait bg-surface-sunken" />
         )}
 
-        <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-2">
-          {saved !== null ? (
-            <span className="rounded-sm bg-surface-accent px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-ink-on-accent">
-              Save {saved}%
-            </span>
-          ) : null}
-          {!product.available ? (
-            <span className="rounded-sm bg-surface-inverse px-2 py-1 text-2xs font-semibold uppercase tracking-wide text-ink-inverse">
-              Sold out
-            </span>
-          ) : null}
-        </div>
+        {alt ? (
+          <Media
+            src={alt.url}
+            alt=""
+            width={alt.width}
+            height={alt.height}
+            sizes={sizes}
+            aspect="portrait"
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-[900ms] ease-out-soft group-hover:opacity-100"
+          />
+        ) : null}
+
+        {!product.available ? (
+          <span className="absolute left-4 top-4 rounded-sm bg-surface-inverse/90 px-2.5 py-1 text-2xs uppercase tracking-widest text-ink-inverse">
+            Sold out
+          </span>
+        ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 pt-4">
-        <h3 className="font-serif text-lg leading-snug text-ink">
-          {/* The whole card is clickable via this stretched link, so there is
-              still exactly one link and one accessible name per product. */}
+      <div className="flex flex-1 flex-col pt-5">
+        <h3 className="font-serif text-lg leading-snug tracking-tight text-ink underline decoration-transparent decoration-1 underline-offset-4 transition-colors duration-300 group-hover:decoration-[var(--color-accent-gold)]">
+          {/* One stretched link makes the whole tile the target. */}
           <Link href={`/products/${product.slug}`} className="after:absolute after:inset-0 after:content-['']">
             {product.title}
           </Link>
         </h3>
 
         {product.subtitle ? (
-          <p className="text-sm text-ink-muted">{product.subtitle}</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-muted">{product.subtitle}</p>
         ) : null}
 
-        {product.rating ? (
-          <Rating value={product.rating.average} count={product.rating.count} size="sm" />
-        ) : null}
-
-        <FromPrice
-          amount={product.from.amount}
-          compareAt={product.from.compareAt}
-          currency={product.from.currency}
-          multipleVariants={multiple}
-          className="mt-auto pt-1"
-        />
+        <p className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 pt-1 text-sm tabular-nums">
+          {multiple ? <span className="text-ink-muted">From</span> : null}
+          <span className="text-ink">{formatMoney(product.from.amount, product.from.currency)}</span>
+          {onSale && product.from.compareAt ? (
+            <s className="text-ink-muted/80 decoration-1">
+              <span className="sr-only">Previous price </span>
+              {formatMoney(product.from.compareAt, product.from.currency)}
+            </s>
+          ) : null}
+        </p>
       </div>
     </article>
   );

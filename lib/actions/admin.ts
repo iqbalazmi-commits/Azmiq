@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import * as t from "@/db/schema";
 import { createAdminSession, getCurrentAdmin, verifyPassword } from "@/lib/auth";
 import { stripe, stripeConfigured } from "@/lib/stripe";
+import { sendOrderConfirmation } from "@/lib/email";
 import { parseMoneyInput } from "@/lib/money";
 import { slugify } from "@/lib/utils";
 
@@ -186,6 +187,80 @@ export async function setInventory(formData: FormData): Promise<void> {
 }
 
 /* ---------------------------------------------------------------- ORDERS */
+
+/* A bank transfer has no webhook to tell us the money arrived, so a human
+   confirms it. This is the manual twin of the Stripe webhook's success path and
+   must do exactly the same work: mark paid, take the stock down, count the
+   discount, and send the receipt the customer is waiting for.
+
+   Guarded on status "pending" so a double click, or two staff confirming the
+   same payment at once, cannot decrement stock twice. */
+export async function markOrderPaid(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
+  await requireAdmin();
+  const id = String(formData.get("orderId") ?? "");
+  if (!id) return { ok: false, error: "Missing order." };
+
+  const [order] = await db.select().from(t.orders).where(eq(t.orders.id, id)).limit(1);
+  if (!order) return { ok: false, error: "That order no longer exists." };
+  if (order.status !== "pending") {
+    return { ok: false, error: `This order is already marked "${order.status}".` };
+  }
+
+  const items = await db.select().from(t.orderItems).where(eq(t.orderItems.orderId, order.id));
+
+  await db.transaction(async (tx) => {
+    const updated = await tx
+      .update(t.orders)
+      .set({
+        status: "paid",
+        paymentStatus: "paid",
+        placedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      // Re-checking the status inside the transaction closes the race that the
+      // read above cannot: two confirmations arriving at the same moment.
+      .where(and(eq(t.orders.id, order.id), eq(t.orders.status, "pending")))
+      .returning({ id: t.orders.id });
+    if (updated.length === 0) return;
+
+    for (const item of items) {
+      if (!item.variantId) continue;
+      await tx
+        .update(t.variants)
+        .set({ inventory: sql`greatest(0, ${t.variants.inventory} - ${item.quantity})` })
+        .where(eq(t.variants.id, item.variantId));
+    }
+
+    if (order.discountCode) {
+      const [discount] = await tx
+        .select()
+        .from(t.discounts)
+        .where(eq(t.discounts.code, order.discountCode))
+        .limit(1);
+      if (discount) {
+        await tx
+          .update(t.discounts)
+          .set({ usedCount: sql`${t.discounts.usedCount} + 1` })
+          .where(eq(t.discounts.id, discount.id));
+        await tx
+          .insert(t.discountRedemptions)
+          .values({ discountId: discount.id, orderId: order.id, email: order.email })
+          .onConflictDoNothing();
+      }
+    }
+  });
+
+  const [fresh] = await db.select().from(t.orders).where(eq(t.orders.id, order.id)).limit(1);
+  if (fresh.status === "paid") {
+    // A mail outage must not undo a payment we have confirmed by eye.
+    await Promise.allSettled([sendOrderConfirmation(fresh, items)]);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${order.id}`);
+  revalidatePath("/admin");
+  return { ok: true, message: "Marked as paid — stock updated and the receipt is on its way." };
+}
 
 export async function fulfilOrder(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
   await requireAdmin();

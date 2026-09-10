@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { AlertTriangle } from "lucide-react";
 import { db } from "@/db";
 import * as t from "@/db/schema";
 import { requireAdminPage } from "@/lib/admin";
+import { stripeConfigured } from "@/lib/stripe";
 import { formatMoney, type Currency } from "@/lib/money";
 import { formatDate } from "@/lib/utils";
 import { OrderStatusBadge } from "@/components/shop/OrderStatusBadge";
@@ -15,6 +17,8 @@ const LOW_STOCK_THRESHOLD = 5;
 export default async function AdminDashboard() {
   const admin = await requireAdminPage();
 
+  // Server Component: renders once per request, so "now" is stable here.
+  // eslint-disable-next-line react-hooks/purity
   const since = (days: number) => new Date(Date.now() - days * 864e5);
 
   const revenueFor = async (days: number) => {
@@ -70,6 +74,24 @@ export default async function AdminDashboard() {
       </h1>
       <p className="mt-1.5 text-ink-muted">Here is where the shop stands right now.</p>
       <hr className="rule-accent mt-6" />
+
+      {/* The single most important thing an owner can be wrong about: whether
+          the shop can actually take money. Loud until it is sorted. */}
+      {!stripeConfigured() ? (
+        <Link
+          href="/admin/payments"
+          className="mt-8 flex items-start gap-4 rounded-lg border border-border-control bg-surface-sunken p-5 transition-colors hover:border-ink/25"
+        >
+          <AlertTriangle size={20} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden="true" />
+          <span>
+            <span className="block font-medium text-ink">This shop cannot take payments yet</span>
+            <span className="mt-1 block text-sm leading-relaxed text-ink-muted">
+              Customers can browse and fill a basket, but the payment step is switched off until
+              your Stripe keys are in. Open Payments to see what is left — it is a five-minute job.
+            </span>
+          </span>
+        </Link>
+      ) : null}
 
       {/* Net of refunds throughout - gross revenue that ignores refunds is a
           number that flatters and misleads in equal measure. */}

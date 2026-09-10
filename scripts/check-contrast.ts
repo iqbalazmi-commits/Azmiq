@@ -6,8 +6,8 @@ import { join } from "node:path";
 
    Reads the real token values out of styles/tokens.css and asserts every
    foreground/background pairing the design actually uses. Run it in CI: a
-   palette tweak that quietly drops body text to 4.2:1 should fail a build, not
-   an accessibility audit six weeks after launch.
+   palette tweak that quietly drops body text to 4.2:1 should fail a build,
+   not an accessibility audit six weeks after launch.
 
    WCAG 2.1 AA: 4.5:1 for body text, 3:1 for large text and for UI components
    and their focus indicators.
@@ -22,17 +22,20 @@ function readToken(name: string): string {
 }
 
 const T = {
-  teal: readToken("azmiq-teal"),
-  green: readToken("azmiq-green"),
-  sage: readToken("azmiq-sage"),
-  sageTint: readToken("azmiq-sage-tint"),
-  sageDeep: readToken("azmiq-sage-deep"),
-  black: readToken("azmiq-black"),
-  warm: readToken("azmiq-warm-white"),
-  white: readToken("azmiq-white"),
-  copper: readToken("azmiq-copper"),
-  slate: readToken("azmiq-slate"),
-  red: readToken("azmiq-red"),
+  cyan: readToken("az-cyan"),
+  cyanDeep: readToken("az-cyan-deep"),
+  cyanText: readToken("az-cyan-text"),
+  lime: readToken("az-lime"),
+  limeDeep: readToken("az-lime-deep"),
+  gold: readToken("az-gold"),
+  goldBright: readToken("az-gold-bright"),
+  white: readToken("az-white"),
+  grey: readToken("az-grey"),
+  grey500: readToken("az-grey-500"),
+  charcoal: readToken("az-charcoal"),
+  muted: readToken("az-muted"),
+  onDarkMuted: readToken("az-on-dark-muted"),
+  red: readToken("az-red"),
 };
 
 function luminance(hex: string): number {
@@ -51,37 +54,35 @@ type Check = { name: string; fg: string; bg: string; min: number };
 
 const CHECKS: Check[] = [
   // Body and heading text
-  { name: "body text on page", fg: T.black, bg: T.warm, min: 4.5 },
-  { name: "body text on card", fg: T.black, bg: T.white, min: 4.5 },
-  { name: "muted text on page", fg: T.slate, bg: T.warm, min: 4.5 },
-  { name: "muted text on card", fg: T.slate, bg: T.white, min: 4.5 },
-  { name: "muted text on sunken section", fg: T.slate, bg: T.sageTint, min: 4.5 },
-  { name: "link text on page", fg: T.teal, bg: T.warm, min: 4.5 },
-  { name: "wellness text on page", fg: T.green, bg: T.warm, min: 4.5 },
-  { name: "wellness text on sunken", fg: T.green, bg: T.sageTint, min: 4.5 },
+  { name: "body text on white", fg: T.charcoal, bg: T.white, min: 4.5 },
+  { name: "body text on grey card", fg: T.charcoal, bg: T.grey, min: 4.5 },
+  { name: "muted text on white", fg: T.muted, bg: T.white, min: 4.5 },
+  { name: "muted text on grey card", fg: T.muted, bg: T.grey, min: 4.5 },
+  { name: "link text on white", fg: T.cyanText, bg: T.white, min: 4.5 },
+  { name: "in-stock text on white", fg: T.limeDeep, bg: T.white, min: 4.5 },
+  { name: "in-stock text on grey", fg: T.limeDeep, bg: T.grey, min: 4.5 },
 
-  // Inverse sections
-  { name: "text on dark editorial", fg: T.warm, bg: T.black, min: 4.5 },
-  { name: "sage muted text on dark", fg: T.sage, bg: T.black, min: 4.5 },
-  { name: "copper on dark editorial", fg: T.copper, bg: T.black, min: 4.5 },
+  // Dark bands
+  { name: "text on charcoal band", fg: T.white, bg: T.charcoal, min: 4.5 },
+  { name: "muted text on charcoal band", fg: T.onDarkMuted, bg: T.charcoal, min: 4.5 },
+  { name: "cyan accent on charcoal band", fg: T.cyan, bg: T.charcoal, min: 4.5 },
 
-  // Buttons
-  { name: "primary button label", fg: T.white, bg: T.teal, min: 4.5 },
-  { name: "wellness button label", fg: T.white, bg: T.green, min: 4.5 },
-  { name: "sale badge label on copper", fg: T.black, bg: T.copper, min: 4.5 },
-  { name: "danger button label", fg: T.white, bg: T.red, min: 4.5 },
+  // Buttons and badges
+  { name: "primary button label (dark on cyan)", fg: T.charcoal, bg: T.cyan, min: 4.5 },
+  { name: "new badge label (dark on lime)", fg: T.charcoal, bg: T.lime, min: 4.5 },
 
   // Errors
-  { name: "error text on page", fg: T.red, bg: T.warm, min: 4.5 },
-  { name: "error text on card", fg: T.red, bg: T.white, min: 4.5 },
+  { name: "error text on white", fg: T.red, bg: T.white, min: 4.5 },
+  { name: "error text on grey card", fg: T.red, bg: T.grey, min: 4.5 },
 
-  // UI components and focus - 3:1
-  { name: "control border on page", fg: T.sageDeep, bg: T.warm, min: 3 },
-  { name: "control border on card", fg: T.sageDeep, bg: T.white, min: 3 },
-  { name: "focus ring on page", fg: T.teal, bg: T.warm, min: 3 },
-  { name: "focus ring on card", fg: T.teal, bg: T.white, min: 3 },
-  { name: "focus ring on sunken", fg: T.teal, bg: T.sageTint, min: 3 },
-  { name: "copper hairline on page", fg: T.copper, bg: T.warm, min: 3 },
+  // UI components and focus — 3:1
+  { name: "control border on white", fg: T.grey500, bg: T.white, min: 3 },
+  { name: "control border on grey", fg: T.grey500, bg: T.grey, min: 3 },
+  { name: "focus ring on white", fg: T.cyanDeep, bg: T.white, min: 3 },
+  { name: "focus ring on charcoal", fg: T.cyanDeep, bg: T.charcoal, min: 3 },
+  { name: "gold hairline on white", fg: T.gold, bg: T.white, min: 3 },
+  { name: "gold hairline on grey", fg: T.gold, bg: T.grey, min: 3 },
+  { name: "gold detail on charcoal band", fg: T.goldBright, bg: T.charcoal, min: 4.5 },
 ];
 
 let failures = 0;
@@ -96,12 +97,13 @@ for (const check of CHECKS) {
   );
 }
 
-/* Deliberate negatives. These pairings must NOT be used, and the test asserts
-   they still fail - so if someone "fixes" sage by darkening it, the comment in
-   the token file stops being a lie without anyone noticing. */
+/* Deliberate negatives. The bright accents must NOT be used as small text on
+   white, and the test asserts they still fail so the token comments stay true. */
 const MUST_FAIL: Check[] = [
-  { name: "sage as text on warm white", fg: T.sage, bg: T.warm, min: 4.5 },
-  { name: "copper as body text on warm white", fg: T.copper, bg: T.warm, min: 4.5 },
+  { name: "cyan as text on white", fg: T.cyan, bg: T.white, min: 4.5 },
+  { name: "lime as text on white", fg: T.lime, bg: T.white, min: 4.5 },
+  { name: "gold as body text on white", fg: T.gold, bg: T.white, min: 4.5 },
+  { name: "white label on cyan button", fg: T.white, bg: T.cyan, min: 4.5 },
 ];
 
 console.log("\nGuard rails — these pairings are documented as unusable\n");

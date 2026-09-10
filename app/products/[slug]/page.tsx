@@ -7,11 +7,13 @@ import { Gallery } from "@/components/shop/Gallery";
 import { PurchasePanel } from "@/components/shop/PurchasePanel";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ReviewList, ReviewSummary } from "@/components/shop/ReviewList";
+import { ReviewForm } from "@/components/shop/ReviewForm";
 import { Rating } from "@/components/ui/Rating";
 import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
 import { getCatalogue, getProductBySlug, getPublishedReviews, relatedProducts } from "@/lib/data";
 import { resolveRedirect } from "@/lib/redirects";
 import { readCurrency } from "@/lib/cart";
+import { getCurrentCustomer } from "@/lib/auth";
 import { SITE } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -55,11 +57,14 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
     notFound();
   }
 
-  const [reviews, all] = await Promise.all([
+  const [reviews, all, customer] = await Promise.all([
     getPublishedReviews(product.id),
     getCatalogue(currency),
+    getCurrentCustomer(),
   ]);
   const related = relatedProducts(all, product);
+
+  const isApparel = product.categorySlugs.includes("leather-jackets");
 
   const primaryCategory = product.categorySlugs[0];
   const categoryTitle = primaryCategory
@@ -77,19 +82,21 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
       <JsonLd data={productJsonLd(product, reviews)} />
       <JsonLd data={breadcrumbJsonLd(trail)} />
 
-      <div className="container-page pt-8">
+      <div className="container-page pt-14 md:pt-20">
         <Breadcrumbs trail={trail} />
       </div>
 
       {/* ------------------------------------------------- BUY BOX */}
-      <div className="container-page grid gap-12 pb-20 pt-10 lg:grid-cols-2 lg:gap-16">
+      <div className="container-page grid gap-12 pb-24 pt-10 lg:grid-cols-2 lg:gap-20">
         <Gallery images={product.images} title={product.title} />
 
-        <div className="lg:pt-4">
+        <div className="lg:pt-6">
           <p className="eyebrow">{product.finish}</p>
-          <h1 className="mt-3 font-serif text-4xl leading-tight text-ink">{product.title}</h1>
+          <h1 className="mt-4 font-serif text-4xl leading-[1.05] tracking-tightest text-ink md:text-[3.25rem]">
+            {product.title}
+          </h1>
           {product.subtitle ? (
-            <p className="mt-2 text-lg text-ink-muted">{product.subtitle}</p>
+            <p className="mt-3 text-lg text-ink-muted">{product.subtitle}</p>
           ) : null}
 
           {product.rating ? (
@@ -106,12 +113,20 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
           {/* Reassurance, stated plainly and only once. */}
           <ul className="mt-8 grid gap-3 border-t border-border pt-7 text-sm sm:grid-cols-2">
-            {[
-              { Icon: Truck, text: "Free UK delivery over £50" },
-              { Icon: RotateCcw, text: "30-day returns, free" },
-              { Icon: PackageCheck, text: "Leak-proof, bag-tested" },
-              { Icon: Leaf, text: "Plastic-free packaging" },
-            ].map(({ Icon, text }) => (
+            {(isApparel
+              ? [
+                  { Icon: Truck, text: "Free UK delivery over £50" },
+                  { Icon: RotateCcw, text: "30-day returns, free" },
+                  { Icon: PackageCheck, text: "Genuine leather" },
+                  { Icon: Leaf, text: "Ships in a protective bag" },
+                ]
+              : [
+                  { Icon: Truck, text: "Free UK delivery over £50" },
+                  { Icon: RotateCcw, text: "30-day returns, free" },
+                  { Icon: PackageCheck, text: "Leak-proof, bag-tested" },
+                  { Icon: Leaf, text: "Plastic-free packaging" },
+                ]
+            ).map(({ Icon, text }) => (
               <li key={text} className="flex items-center gap-2.5 text-ink-muted">
                 <Icon size={17} className="shrink-0 text-ink-wellness" aria-hidden="true" />
                 {text}
@@ -123,7 +138,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
       {/* ------------------------------------------------ DESCRIPTION */}
       <section className="bg-surface-sunken">
-        <div className="container-page grid gap-14 py-20 lg:grid-cols-[1.1fr_1fr]">
+        <div className="container-page grid gap-16 py-24 md:py-32 lg:grid-cols-[1.1fr_1fr]">
           <div className="prose-editorial">
             <h2 className="font-serif text-2xl text-ink">About this piece</h2>
             <hr className="rule-accent my-5" />
@@ -138,16 +153,27 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <h2 className="font-serif text-2xl text-ink">Specification</h2>
             <hr className="rule-accent my-5" />
             <dl className="divide-y divide-border border-y border-border">
-              {[
-                ["Material", product.material],
-                ["Finish", product.finish],
-                ["Capacity", product.variants.map((v) => v.title).join(", ")],
-                ["Dimensions", product.dimensions],
-                ["Weight", product.weightGrams ? `${product.weightGrams}g` : null],
-                ["Leak-proof", product.leakProof ? "Yes, silicone-sealed cap" : "Open vessel"],
-                ["Food grade", product.foodGrade ? "Yes, unlined and unlacquered" : null],
-                ["Made", product.handcrafted ? "Handcrafted in small batches" : null],
-              ]
+              {(isApparel
+                ? [
+                    ["Material", product.material],
+                    ["Finish", product.finish],
+                    ["Sizes", product.variants.map((v) => v.title).join(", ")],
+                    ["Weight", product.weightGrams ? `${product.weightGrams}g` : null],
+                    ["Fit", "Tailored modern fit"],
+                    ["Lining", "Fully lined"],
+                    ["Made", "Cut and finished by hand"],
+                  ]
+                : [
+                    ["Material", product.material],
+                    ["Finish", product.finish],
+                    ["Capacity", product.variants.map((v) => v.title).join(", ")],
+                    ["Dimensions", product.dimensions],
+                    ["Weight", product.weightGrams ? `${product.weightGrams}g` : null],
+                    ["Leak-proof", product.leakProof ? "Yes, silicone-sealed cap" : "Open vessel"],
+                    ["Food grade", product.foodGrade ? "Yes, unlined and unlacquered" : null],
+                    ["Made", product.handcrafted ? "Handcrafted in small batches" : null],
+                  ]
+              )
                 .filter(([, value]) => value)
                 .map(([label, value]) => (
                   <div key={label as string} className="grid grid-cols-[9rem_1fr] gap-4 py-3.5 text-sm">
@@ -163,7 +189,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
       {/* -------------------------------------------------- AYURVEDA */}
       {product.wellnessStory ? (
         <section className="bg-surface-inverse text-ink-inverse">
-          <div className="container-page py-20">
+          <div className="container-page py-24 md:py-32">
             <div className="prose-editorial">
               <p className="eyebrow text-ink-on-inverse-muted">Ayurvedic wellness</p>
               <h2 className="mt-4 font-serif text-3xl leading-tight">Why copper</h2>
@@ -180,11 +206,13 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
       {/* ------------------------------------------------------ CARE */}
       {product.careInstructions ? (
-        <section className="container-page py-20">
+        <section className="container-page py-24 md:py-32">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
             <div>
               <p className="eyebrow">Looking after it</p>
-              <h2 className="mt-3 font-serif text-3xl text-ink">Copper care</h2>
+              <h2 className="mt-3 font-serif text-3xl text-ink">
+                {isApparel ? "Leather care" : "Copper care"}
+              </h2>
               <hr className="rule-accent mt-6" />
             </div>
             <div className="prose-editorial">
@@ -193,12 +221,14 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
                   {paragraph}
                 </p>
               ))}
-              <Link
-                href="/copper-care"
-                className="mt-6 inline-block text-sm text-ink-brand underline underline-offset-4"
-              >
-                Read the full copper care guide
-              </Link>
+              {!isApparel ? (
+                <Link
+                  href="/copper-care"
+                  className="mt-6 inline-block text-sm text-ink-brand underline underline-offset-4"
+                >
+                  Read the full copper care guide
+                </Link>
+              ) : null}
             </div>
           </div>
         </section>
@@ -206,21 +236,35 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
       {/* --------------------------------------------------- REVIEWS */}
       <section id="reviews" className="border-t border-border bg-surface">
-        <div className="container-page py-20">
+        <div className="container-page py-24 md:py-32">
           <p className="eyebrow">What customers say</p>
           <h2 className="mt-3 font-serif text-3xl text-ink">Reviews</h2>
           <hr className="rule-accent my-8" />
 
           <ReviewSummary reviews={reviews} />
+
+          <div className="mt-10">
+            <ReviewForm
+              productId={product.id}
+              productSlug={product.slug}
+              defaultName={customer?.firstName ?? ""}
+              defaultEmail={customer?.email ?? ""}
+            />
+          </div>
+
           <div className="mt-12">
-            <ReviewList reviews={reviews} />
+            {reviews.length > 0 ? (
+              <ReviewList reviews={reviews} />
+            ) : (
+              <p className="text-sm text-ink-muted">No reviews yet — be the first.</p>
+            )}
           </div>
         </div>
       </section>
 
       {/* --------------------------------------------------- RELATED */}
       {related.length > 0 ? (
-        <section className="container-page py-20">
+        <section className="container-page py-24 md:py-32">
           <h2 className="font-serif text-2xl text-ink">You might also like</h2>
           <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-12 lg:grid-cols-4 lg:gap-x-8">
             {related.map((item) => (

@@ -32,15 +32,17 @@
 
   h1, h2, h3, h4 {
     font-family: var(--font-serif);
-    color: var(--color-ink);
+    /* Inherit colour from the section: near-black on light grounds (from body),
+       warm-white on the dark editorial sections. Never hard-code it here. */
+    color: inherit;
     text-wrap: balance;
     letter-spacing: var(--tracking-tightest);
     font-weight: 400;
   }
   p { text-wrap: pretty; }
 
-  /* Focus: one ring, everywhere, always visible. Teal reads 11.48:1 on the page
-     ground and 3:1+ against product photography thanks to the white offset. */
+  /* Focus: one ring everywhere. Cyan-deep reads 4:1 on white and 4.2:1 on
+     charcoal, and the 2px offset keeps it clear over product photography. */
   :focus-visible {
     outline: 3px solid var(--color-focus);
     outline-offset: 2px;
@@ -70,10 +72,20 @@
   }
   .skip-link:focus { top: 0.5rem; }
 
-  /* The copper hairline. This is the accent's main job on the whole site. */
+  /* A short antique-gold rule under an eyebrow or heading — the premium detail
+     mark. 2px so it reads as a deliberate graphic, not a stray hairline. */
   .rule-accent {
-    border: 0; height: 1px; width: 3rem;
+    border: 0; height: 2px; width: 2.25rem;
     background: var(--color-accent-rule);
+  }
+  .rule-gold {
+    border: 0; height: 2px; width: 2.25rem;
+    background: var(--color-accent-gold);
+  }
+  /* Full-width hairline in gold, for section joins that want warmth. */
+  .hairline-gold {
+    border: 0; height: 1px; width: 100%;
+    background: color-mix(in srgb, var(--color-hairline) 45%, transparent);
   }
 
   .eyebrow {
@@ -81,8 +93,10 @@
     letter-spacing: var(--tracking-widest);
     text-transform: uppercase;
     color: var(--color-ink-muted);
-    font-weight: 500;
+    font-weight: 600;
   }
+  /* On charcoal bands the eyebrow picks up the gold detail colour. */
+  .eyebrow-gold { color: var(--color-ink-gold); }
 
   .prose-editorial { max-width: var(--container-prose); }
   .prose-editorial p + p { margin-top: 1.25em; }
@@ -107,4 +121,16 @@
     padding: 0; margin: -1px; overflow: hidden;
     clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
   }
+
+  /* Horizontal snap scroller (featured carousel) — hide the native bar. */
+  .scroll-x {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior-x: contain;
+  }
+  .scroll-x::-webkit-scrollbar { display: none; }
+  .scroll-x > * { scroll-snap-align: start; flex: 0 0 auto; }
 }

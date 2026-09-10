@@ -1,202 +1,166 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Droplet, Hammer, Leaf, ShieldCheck } from "lucide-react";
+import { Globe, Sparkles, ShieldCheck, ArrowRight } from "lucide-react";
 import { Media } from "@/components/ui/Media";
 import { ButtonLink } from "@/components/ui/Button";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { getCatalogue, getCategories } from "@/lib/data";
+import { HeroCarousel, type HeroSlide } from "@/components/shop/HeroCarousel";
+import { getCatalogue } from "@/lib/data";
 import { readCurrency } from "@/lib/cart";
 import { SITE } from "@/lib/site";
+import type { CatalogueProduct } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "AZMIQ — Handcrafted Copper Drinkware",
+  title: "AZMIQ — Leather, Copperware & Home",
   description: SITE.description,
   alternates: { canonical: "/" },
 };
 
-// The catalogue changes rarely; revalidating hourly keeps the home page on the
-// edge cache while still picking up a price change without a deploy.
 export const revalidate = 3600;
+
+type Tile = { label: string; slug: string; blurb: string };
+
+/* The rotating hero band — a scene from each side of the range. */
+const HERO_PICKS: { slug: string; kind?: string; alt: string }[] = [
+  { slug: "pure-copper-water-bottle", alt: "A handcrafted copper water bottle styled with lemon and linen" },
+  { slug: "womens-leather-jacket", kind: "gallery", alt: "A black leather trench coat against a concrete wall" },
+  { slug: "womens-burgundy-leather-jacket", kind: "lifestyle", alt: "A burgundy leather trench in a wood-panelled boutique" },
+  { slug: "mens-leather-jacket", kind: "gallery", alt: "A black leather café-racer jacket, laid flat" },
+  { slug: "ayurvedic-copper-water-set", alt: "A copper jug, bottle and two tumblers" },
+];
+
+function heroSlides(products: CatalogueProduct[]): HeroSlide[] {
+  return HERO_PICKS.flatMap(({ slug, kind, alt }) => {
+    const p = products.find((x) => x.slug === slug);
+    if (!p) return [];
+    const img = (kind && p.images.find((i) => i.kind === kind)) || p.images[0];
+    return img ? [{ src: img.url, alt, width: img.width, height: img.height }] : [];
+  });
+}
+
+const BENTO: Tile[] = [
+  { label: "Leather", slug: "leather-jackets", blurb: "Jackets and a leather trench" },
+  { label: "Copperware", slug: "copper-water-bottles", blurb: "Pure copper, hand-hammered" },
+  { label: "Kitchen", slug: "kitchen-utensils", blurb: "Sustainable acacia wood" },
+  { label: "Gifts", slug: "wellness-gift-sets", blurb: "Matched sets, ready to give" },
+];
+
+function tileImage(products: CatalogueProduct[], slug: string) {
+  const p = products.find((x) => x.categorySlugs.includes(slug));
+  const img = p?.images.find((i) => i.kind === "lifestyle") ?? p?.images[0];
+  return img ?? null;
+}
 
 export default async function HomePage() {
   const currency = await readCurrency();
-  const [products, categories] = await Promise.all([getCatalogue(currency), getCategories()]);
-  const featured = products.filter((p) => p.featured).slice(0, 4);
-  const bestRated = [...products]
-    .filter((p) => (p.rating?.count ?? 0) >= 4)
-    .sort((a, b) => (b.rating?.average ?? 0) - (a.rating?.average ?? 0))
-    .slice(0, 4);
+  const products = await getCatalogue(currency);
+  const featured = products.filter((p) => p.featured).slice(0, 8);
+  const carousel = featured.length >= 4 ? featured : products.slice(0, 8);
+  const slides = heroSlides(products);
 
   return (
     <>
-      {/* ------------------------------------------------------------ HERO */}
-      <section className="relative bg-surface-inverse text-ink-inverse">
-        <div className="absolute inset-0">
-          <Media
-            src="/images/hero-pour.svg"
-            alt=""
-            width={2000}
-            height={1200}
-            sizes="100vw"
-            priority
-            aspect="none"
-            className="h-full"
-            imgClassName="opacity-70"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-r from-[var(--color-surface-inverse)] via-[var(--color-surface-inverse)]/75 to-transparent"
-          />
-        </div>
+      {/* ============================================================= HERO */}
+      <section className="relative isolate flex min-h-[82svh] items-end overflow-hidden bg-surface-inverse">
+        <HeroCarousel slides={slides} />
 
-        <div className="container-page relative py-28 md:py-40">
-          <div className="max-w-xl">
-            <p className="eyebrow text-ink-on-inverse-muted">Ayurvedic copper, made properly</p>
-            <h1 className="mt-5 font-serif text-4xl leading-[1.06] md:text-5xl">
-              drink well,
+        <div className="container-page relative z-10 w-full pb-16 pt-24 md:pb-24 md:pt-28">
+          <div className="max-w-xl rounded-lg bg-surface/92 p-9 shadow-lift ring-1 ring-black/[0.05] backdrop-blur-md md:p-14">
+            <p className="eyebrow text-ink-muted">Modern luxury &middot; Artisanal craft</p>
+            <hr className="rule-accent mt-5" />
+            <h1 className="mt-6 font-serif text-[2.35rem] leading-[1.1] tracking-tightest text-ink sm:text-[2.9rem] lg:text-[3.4rem]">
+              Considered goods,
               <br />
-              live well
+              made to last.
             </h1>
-            <hr className="rule-accent my-7" />
-            <p className="max-w-md text-lg leading-relaxed text-ink-inverse/85">
-              Handcrafted bottles, jugs and sets in 100% pure copper. Traditional artistry,
-              contemporary design, and prices we are happy to explain.
+            <p className="mt-6 max-w-md leading-relaxed text-ink-muted">
+              Leather, pure copper drinkware and home essentials &mdash; a small, curated
+              collection, priced openly and shipped worldwide.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <ButtonLink href="/collections/copper-water-bottles" size="lg">
-                Shop water bottles
+            <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <ButtonLink href="/collections/all" size="lg">
+                Shop the collection
               </ButtonLink>
-              <ButtonLink
-                href="/ayurveda"
-                variant="secondary"
-                size="lg"
-                className="border-white/40 bg-transparent text-ink-inverse hover:border-white hover:bg-white/10"
+              <Link
+                href="/collections/leather-jackets"
+                className="group inline-flex items-center gap-1.5 text-sm font-medium text-ink underline decoration-[color-mix(in_srgb,var(--color-accent-gold)_70%,transparent)] decoration-1 underline-offset-[6px] transition hover:decoration-2"
               >
-                Why copper
-              </ButtonLink>
+                New: the leather line
+                <ArrowRight
+                  size={15}
+                  aria-hidden="true"
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                />
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ----------------------------------------------------------- TRUST */}
-      <section aria-label="What every AZMIQ piece guarantees" className="border-b border-border bg-surface">
-        <ul className="container-page grid grid-cols-2 gap-x-6 gap-y-8 py-12 lg:grid-cols-4">
-          {[
-            { Icon: Droplet, title: "100% pure copper", note: "Unlined, unlacquered, food-grade" },
-            { Icon: Hammer, title: "Handcrafted", note: "Raised and hammered by hand" },
-            { Icon: ShieldCheck, title: "Leak-proof", note: "Silicone-sealed, bag-tested" },
-            { Icon: Leaf, title: "Eco-friendly", note: "Endlessly recyclable, plastic-free" },
-          ].map(({ Icon, title, note }) => (
-            <li key={title} className="flex items-start gap-3">
-              <Icon size={22} className="mt-0.5 shrink-0 text-ink-wellness" aria-hidden="true" />
-              <div>
-                <p className="font-medium text-ink">{title}</p>
-                <p className="mt-0.5 text-sm text-ink-muted">{note}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* -------------------------------------------------------- FEATURED */}
-      <section className="container-page py-20 md:py-28">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+      {/* ==================================================== CATEGORY BENTO */}
+      <section className="container-page py-24 md:py-32">
+        <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="eyebrow">Chosen by us</p>
-            <h2 className="mt-3 font-serif text-3xl text-ink">The pieces we would buy</h2>
+            <p className="eyebrow text-ink-muted">Browse</p>
+            <hr className="rule-accent mt-4" />
+            <h2 className="mt-5 font-serif text-3xl tracking-tightest text-ink md:text-4xl">
+              Shop by category
+            </h2>
           </div>
           <Link
             href="/collections/all"
-            className="text-sm text-ink-brand underline underline-offset-4 hover:decoration-2"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-brand underline decoration-1 underline-offset-[6px] hover:decoration-2"
           >
-            View everything
+            View all
+            <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </div>
 
-        <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-12 lg:grid-cols-4 lg:gap-x-8">
-          {featured.map((product, i) => (
-            <ProductCard key={product.id} product={product} priority={i < 2} />
-          ))}
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------- AYURVEDA */}
-      <section className="bg-surface-inverse text-ink-inverse">
-        <div className="container-page grid items-center gap-14 py-24 md:py-32 lg:grid-cols-2">
-          <div className="max-w-lg">
-            <p className="eyebrow text-ink-on-inverse-muted">The practice</p>
-            <h2 className="mt-4 font-serif text-3xl leading-tight md:text-4xl">
-              Water, left overnight in copper
-            </h2>
-            <hr className="rule-accent my-7" />
-            <div className="prose-editorial space-y-5 text-ink-inverse/85">
-              <p>
-                Ayurveda calls it <em>tamra jal</em>. Fill the vessel in the evening, leave it to
-                stand at room temperature, and drink it in the morning. The practice is thousands
-                of years old and takes about four seconds to adopt.
-              </p>
-              <p>
-                Copper is an essential trace mineral, and copper surfaces are naturally
-                antimicrobial. Practitioners hold that tamra jal helps balance the doshas and
-                supports digestion.
-              </p>
-              <p className="text-sm text-ink-on-inverse-muted">
-                We make no medical claims. We make the vessel properly — unlined, unlacquered,
-                100% pure copper — so the tradition works as it is meant to.
-              </p>
-            </div>
-            <ButtonLink
-              href="/ayurveda"
-              variant="secondary"
-              className="mt-8 border-white/40 bg-transparent text-ink-inverse hover:border-white hover:bg-white/10"
-            >
-              Read the full story
-            </ButtonLink>
-          </div>
-
-          <Media
-            src="/images/editorial-ayurveda.svg"
-            alt="A hammered copper bottle resting on linen in low morning light"
-            width={1400}
-            height={1000}
-            sizes="(min-width: 1024px) 46vw, 90vw"
-            aspect="wide"
-            className="rounded-lg"
-          />
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------ CATEGORIES */}
-      <section className="container-page py-20 md:py-28">
-        <p className="eyebrow">Browse</p>
-        <h2 className="mt-3 font-serif text-3xl text-ink">By what it is for</h2>
-
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => {
-            const sample = products.find((p) => p.categorySlugs.includes(category.slug));
+        <div className="mt-12 grid gap-5 md:auto-rows-[minmax(190px,1fr)] md:grid-cols-3 lg:auto-rows-[minmax(228px,1fr)]">
+          {BENTO.map((tile, i) => {
+            const img = tileImage(products, tile.slug);
             return (
               <Link
-                key={category.id}
-                href={`/collections/${category.slug}`}
-                className="group relative overflow-hidden rounded-lg border border-border bg-surface-raised"
+                key={tile.slug}
+                href={`/collections/${tile.slug}`}
+                className={
+                  "group relative isolate flex items-end overflow-hidden rounded-lg bg-surface-raised " +
+                  (i === 0
+                    ? "min-h-[280px] md:col-span-2 md:row-span-2"
+                    : i === 3
+                      ? "min-h-[220px] md:col-span-3 lg:col-span-1"
+                      : "min-h-[220px]")
+                }
               >
-                {sample?.images[0] ? (
+                {img ? (
                   <Media
-                    src={sample.images[2]?.url ?? sample.images[0].url}
+                    src={img.url}
                     alt=""
-                    width={1200}
-                    height={1500}
-                    sizes="(min-width: 1024px) 30vw, 90vw"
-                    aspect="square"
-                    imgClassName="transition-transform duration-700 ease-out-soft group-hover:scale-[1.04]"
+                    width={img.width}
+                    height={img.height}
+                    sizes="(min-width: 1024px) 40vw, (min-width: 768px) 50vw, 100vw"
+                    aspect="none"
+                    className="absolute inset-0 -z-10 h-full"
+                    imgClassName="object-cover transition-transform duration-[900ms] ease-out-soft group-hover:scale-[1.04]"
                   />
                 ) : null}
-                <div className="p-6">
-                  <h3 className="font-serif text-xl text-ink">{category.title}</h3>
-                  {category.subtitle ? (
-                    <p className="mt-1 text-sm text-ink-muted">{category.subtitle}</p>
-                  ) : null}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 -z-10 bg-gradient-to-t from-[rgb(24_24_27/0.68)] via-[rgb(24_24_27/0.12)] to-transparent"
+                />
+                <div className="p-7 text-ink-inverse">
+                  <span aria-hidden="true" className="block h-px w-8 bg-accent-gold" />
+                  <p className="mt-3 text-2xs uppercase tracking-widest text-ink-inverse/80">
+                    {tile.blurb}
+                  </p>
+                  <h3 className="mt-1.5 flex items-center gap-2 font-serif text-2xl tracking-tight">
+                    {tile.label}
+                    <ArrowRight
+                      size={18}
+                      aria-hidden="true"
+                      className="-translate-x-1 text-ink-gold opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
+                    />
+                  </h3>
                 </div>
               </Link>
             );
@@ -204,55 +168,96 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ---------------------------------------------------- FAIR PRICING */}
-      <section className="bg-surface-sunken">
-        <div className="container-page grid gap-14 py-24 lg:grid-cols-[1fr_1.1fr]">
-          <div className="max-w-md">
-            <p className="eyebrow">Fair and transparent</p>
-            <h2 className="mt-3 font-serif text-3xl leading-tight text-ink">
-              Luxury-grade quality, without the luxury mark-up
+      {/* ================================================= FEATURED CAROUSEL */}
+      <section className="bg-surface-sunken py-24 md:py-32">
+        <div className="container-page flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="eyebrow text-ink-muted">The edit</p>
+            <hr className="rule-accent mt-4" />
+            <h2 className="mt-5 font-serif text-3xl tracking-tightest text-ink md:text-4xl">
+              Featured this season
             </h2>
-            <hr className="rule-accent my-6" />
-            <p className="text-ink-muted">
-              We sell direct. There is no distributor, no department-store margin and no licensing
-              fee folded into the price — which is why a bottle that would sit at £90 elsewhere
-              sits at £34 here.
+          </div>
+          <p className="text-sm text-ink-muted">Swipe to explore &rarr;</p>
+        </div>
+
+        <div className="scroll-x mt-12 gap-7 px-5 pb-3 md:px-8 [scroll-padding-left:2rem]">
+          {carousel.map((product, i) => (
+            <div key={product.id} className="w-[16rem] sm:w-[18.5rem]">
+              <ProductCard product={product} priority={i < 3} sizes="18.5rem" />
+            </div>
+          ))}
+          <Link
+            href="/collections/all"
+            className="group flex w-[16rem] shrink-0 flex-col items-center justify-center gap-4 rounded-lg border border-border bg-surface text-center transition-colors hover:border-border-strong sm:w-[18.5rem]"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-pill bg-accent text-ink-on-brand transition-transform duration-300 group-hover:scale-105">
+              <ArrowRight size={20} aria-hidden="true" />
+            </span>
+            <span className="text-sm font-medium text-ink">Shop everything</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ========================================================= EDITORIAL */}
+      <section className="bg-surface-inverse text-ink-inverse">
+        <div className="container-page grid items-center gap-16 py-28 md:py-36 lg:grid-cols-[1fr_1.05fr]">
+          <div className="max-w-lg">
+            <p className="eyebrow eyebrow-gold">New &mdash; the leather line</p>
+            <hr className="rule-gold mt-5" />
+            <h2 className="mt-7 font-serif text-3xl leading-[1.1] tracking-tightest md:text-5xl">
+              Genuine leather,
+              <br />
+              the same standard
+            </h2>
+            <p className="mt-7 max-w-md leading-relaxed text-ink-inverse/85">
+              Genuine leather outerwear in clean, modern cuts &mdash; a café-racer jacket for men,
+              and belted double-breasted trenches for women in black and deep burgundy. Full-grain
+              hide, a soft full lining, a tailored fit. Five sizes, S to XXL.
             </p>
-            <ButtonLink href="/fair-pricing" variant="secondary" className="mt-8">
-              How we price
+            <ButtonLink href="/collections/leather-jackets" variant="secondary-inverse" className="mt-10">
+              Shop leather jackets
             </ButtonLink>
           </div>
-
           <Media
-            src="/images/editorial-texture.svg"
-            alt="Macro detail of a hand-hammered copper surface"
-            width={1600}
-            height={1000}
-            sizes="(min-width: 1024px) 52vw, 90vw"
-            aspect="wide"
-            className="rounded-lg"
+            src="/images/products/mens-leather-jacket/00-hero.png"
+            alt="AZMIQ men's leather jacket, a black café-racer with a low stand collar"
+            width={1024}
+            height={1536}
+            sizes="(min-width: 1024px) 46vw, 90vw"
+            aspect="portrait"
+            className="rounded-lg bg-surface-raised"
           />
         </div>
       </section>
 
-      {/* --------------------------------------------------- SOCIAL PROOF */}
-      <section className="container-page py-20 md:py-28">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="eyebrow">Most loved</p>
-            <h2 className="mt-3 font-serif text-3xl text-ink">Highest rated by customers</h2>
-          </div>
-          <Link
-            href="/collections/all?sort=rating"
-            className="text-sm text-ink-brand underline underline-offset-4 hover:decoration-2"
-          >
-            Sort everything by rating
-          </Link>
-        </div>
-
-        <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-12 lg:grid-cols-4 lg:gap-x-8">
-          {bestRated.map((product) => (
-            <ProductCard key={product.id} product={product} />
+      {/* ======================================================= VALUE PROPS */}
+      <section className="border-t border-border bg-surface">
+        <div className="container-page grid gap-x-10 gap-y-12 py-20 sm:grid-cols-3 md:py-24">
+          {[
+            {
+              Icon: Globe,
+              title: "Shipped worldwide",
+              body: "Free tracked UK delivery over £50, with tracked shipping to Europe and the rest of the world. Duties shown before you pay.",
+            },
+            {
+              Icon: Sparkles,
+              title: "Made properly",
+              body: "100% pure copper, full-grain leather, sustainable acacia. No shortcuts.",
+            },
+            {
+              Icon: ShieldCheck,
+              title: "Secure checkout",
+              body: "Card, Apple Pay and Google Pay. Card details never touch our servers.",
+            },
+          ].map(({ Icon, title, body }) => (
+            <div key={title} className="flex flex-col items-start">
+              <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface-sunken text-[var(--color-accent-gold-deep)] ring-1 ring-[color-mix(in_srgb,var(--color-accent-gold)_35%,transparent)]">
+                <Icon size={20} aria-hidden="true" />
+              </span>
+              <h3 className="mt-5 font-serif text-lg tracking-tight text-ink">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{body}</p>
+            </div>
           ))}
         </div>
       </section>

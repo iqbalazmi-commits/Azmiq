@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/site";
+import { JsonLd, organisationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { Header } from "@/components/shop/Header";
 import { Footer } from "@/components/shop/Footer";
 import { ConsentBanner } from "@/components/shop/ConsentBanner";
@@ -12,19 +13,19 @@ import { AnalyticsScripts } from "@/components/shop/AnalyticsScripts";
    has nothing to block here; and the fallback metrics below are generated to
    match, which is what holds CLS at zero while the face loads. */
 
-const serif = Fraunces({
+const serif = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
+  variable: "--font-playfair",
+  weight: ["400", "500", "600", "700"],
   fallback: ["Iowan Old Style", "Palatino Linotype", "Georgia", "serif"],
   adjustFontFallback: true,
 });
 
-const sans = Hanken_Grotesk({
+const sans = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-hanken",
+  variable: "--font-inter",
   fallback: ["ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "sans-serif"],
   adjustFontFallback: true,
 });
@@ -56,7 +57,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Pinch-zoom must never be disabled. WCAG 1.4.4.
   maximumScale: 5,
-  themeColor: "#0E3B43",
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -73,6 +74,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <ConsentBanner />
         <AnalyticsScripts />
+        <JsonLd data={organisationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
       </body>
     </html>
   );

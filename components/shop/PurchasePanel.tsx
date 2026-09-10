@@ -89,7 +89,11 @@ export function PurchasePanel({ product }: { product: CatalogueProduct }) {
         {multiple ? (
           <fieldset className="mb-7">
             <legend className="eyebrow mb-3">
-              {product.variants.some((v) => v.capacityMl) ? "Capacity" : "Option"}
+              {product.variants.some((v) => v.capacityMl)
+                ? "Capacity"
+                : product.categorySlugs.includes("leather-jackets")
+                  ? "Size"
+                  : "Option"}
             </legend>
             <div className="flex flex-wrap gap-2.5">
               {product.variants.map((option) => {

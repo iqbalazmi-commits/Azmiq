@@ -10,6 +10,8 @@ import { formatDate } from "@/lib/utils";
 import { OrderStatusBadge } from "@/components/shop/OrderStatusBadge";
 import { FulfilForm } from "@/components/admin/FulfilForm";
 import { RefundForm } from "@/components/admin/RefundForm";
+import { MarkPaidForm } from "@/components/admin/MarkPaidForm";
+import { transferReference } from "@/lib/bank-transfer";
 
 export const metadata = { title: "Order" };
 export const dynamic = "force-dynamic";
@@ -95,7 +97,24 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
             </dl>
           </section>
 
-          {order.status === "pending" ? (
+          {order.status === "pending" && order.paymentMethod === "bank_transfer" ? (
+            <section className="rounded-lg border-2 border-surface-brand bg-surface-brand-wash p-6">
+              <h2 className="font-serif text-xl text-ink">Awaiting bank transfer</h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                The customer chose to pay by bank transfer, so nothing is automatic here. Check your
+                bank for{" "}
+                <strong className="text-ink">{formatMoney(order.grandTotal, currency)}</strong> with
+                the reference{" "}
+                <strong className="text-ink">{transferReference(order.number)}</strong>. Confirm it
+                only once you can see the money — that is what reduces stock and sends their receipt.
+              </p>
+              <MarkPaidForm
+                orderId={order.id}
+                amount={formatMoney(order.grandTotal, currency)}
+                reference={transferReference(order.number)}
+              />
+            </section>
+          ) : order.status === "pending" ? (
             <p className="rounded-lg border border-border bg-surface-sunken p-5 text-sm leading-relaxed text-ink-muted">
               This order has not been paid. It was created when the customer reached the payment
               step and will stay here until Stripe confirms a payment. Unpaid orders are normal —
@@ -115,24 +134,37 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
 
               <section className="rounded-lg border border-border bg-surface-raised p-6">
                 <h2 className="font-serif text-xl text-ink">Refund</h2>
-                <p className="mt-1.5 text-sm text-ink-muted">
-                  Refunds go back to the original payment method through Stripe. Up to{" "}
-                  {formatMoney(refundable, currency)} can still be refunded on this order.
-                </p>
-                {refundRows.length > 0 ? (
-                  <ul className="mt-4 flex flex-col gap-1.5 text-sm text-ink-muted">
-                    {refundRows.map((refund) => (
-                      <li key={refund.id}>
-                        {formatMoney(refund.amount, currency)} on {formatDate(refund.createdAt)}
-                        {refund.reason ? ` — ${refund.reason}` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                {refundable > 0 ? (
-                  <RefundForm orderId={order.id} maxAmount={refundable} currency={currency} />
+                {order.paymentMethod === "bank_transfer" ? (
+                  /* There is no card to send the money back to. Stripe cannot
+                     help, so this has to be done from the bank by hand. */
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                    This order was paid by bank transfer, so a refund has to be sent from your bank
+                    back to the customer&apos;s account — there is no card to reverse. Their contact
+                    details are on the right; ask them for their account details, send the transfer,
+                    then note it below.
+                  </p>
                 ) : (
-                  <p className="mt-4 text-sm text-ink-wellness">Fully refunded.</p>
+                  <>
+                    <p className="mt-1.5 text-sm text-ink-muted">
+                      Refunds go back to the original payment method through Stripe. Up to{" "}
+                      {formatMoney(refundable, currency)} can still be refunded on this order.
+                    </p>
+                    {refundRows.length > 0 ? (
+                      <ul className="mt-4 flex flex-col gap-1.5 text-sm text-ink-muted">
+                        {refundRows.map((refund) => (
+                          <li key={refund.id}>
+                            {formatMoney(refund.amount, currency)} on {formatDate(refund.createdAt)}
+                            {refund.reason ? ` — ${refund.reason}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {refundable > 0 ? (
+                      <RefundForm orderId={order.id} maxAmount={refundable} currency={currency} />
+                    ) : (
+                      <p className="mt-4 text-sm text-ink-wellness">Fully refunded.</p>
+                    )}
+                  </>
                 )}
               </section>
             </>

@@ -2,6 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Pin the workspace root. Without this, an unrelated package-lock.json in a
+  // parent directory (e.g. the user's home folder) makes Turbopack infer the
+  // wrong root and resolve node_modules — including Tailwind's native oxide
+  // binding — from the wrong place.
+  turbopack: { root: import.meta.dirname },
   // Native/WASM packages must not be bundled by webpack.
   serverExternalPackages: ["@electric-sql/pglite", "postgres"],
   images: {

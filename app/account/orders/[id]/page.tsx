@@ -40,6 +40,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const currency = order.currency as Currency;
   const address = order.shippingAddress as Record<string, string> | null;
   const placedAt = order.placedAt ?? order.createdAt;
+  // Server Component: renders once per request, so "now" is stable here.
+  // eslint-disable-next-line react-hooks/purity
   const daysSince = Math.floor((Date.now() - placedAt.getTime()) / 864e5);
   const canReturn =
     ["paid", "fulfilled"].includes(order.status) &&

@@ -7,6 +7,8 @@ import { getCart } from "@/lib/cart";
 import { getCurrentCustomer } from "@/lib/auth";
 import { shippingRateById } from "@/lib/shipping";
 import { stripe, stripeConfigured, stripeCurrency } from "@/lib/stripe";
+import { bankDetails, bankTransferConfigured, transferReference } from "@/lib/bank-transfer";
+import { sendBankTransferInstructions, sendNewOrderAlert } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -40,16 +42,10 @@ const bodySchema = z.object({
   shippingRateId: z.string().uuid(),
   customerNote: z.string().max(500).optional().or(z.literal("")),
   marketingConsent: z.boolean().optional(),
+  paymentMethod: z.enum(["card", "bank_transfer"]).default("card"),
 });
 
 export async function POST(request: Request) {
-  if (!stripeConfigured()) {
-    return NextResponse.json(
-      { error: "Payments are not configured yet. Add your Stripe keys to .env.local." },
-      { status: 503 },
-    );
-  }
-
   let body: unknown;
   try {
     body = await request.json();
@@ -65,7 +61,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const { email, shippingAddress, shippingRateId, customerNote, marketingConsent } = parsed.data;
+  const { email, shippingAddress, shippingRateId, customerNote, marketingConsent, paymentMethod } =
+    parsed.data;
+
+  // Each method has its own prerequisite, so the guard depends on the choice -
+  // a shop with only bank details set must still be able to sell.
+  if (paymentMethod === "card" && !stripeConfigured()) {
+    return NextResponse.json(
+      { error: "Card payments are not configured yet." },
+      { status: 503 },
+    );
+  }
+  if (paymentMethod === "bank_transfer" && !bankTransferConfigured()) {
+    return NextResponse.json(
+      { error: "Bank transfer is not available at the moment." },
+      { status: 503 },
+    );
+  }
 
   const rate = await shippingRateById(shippingRateId);
   if (!rate) return NextResponse.json({ error: "Choose a delivery method." }, { status: 400 });
@@ -113,6 +125,7 @@ export async function POST(request: Request) {
     billingAddress: shippingAddress,
     shippingMethod: `${rate.name}${rate.description ? ` - ${rate.description}` : ""}`,
     customerNote: customerNote || null,
+    paymentMethod,
     updatedAt: new Date(),
   };
 
@@ -143,6 +156,51 @@ export async function POST(request: Request) {
       };
     }),
   );
+
+  /* ---------------------------------------------------------- bank transfer
+
+     No processor to call: the order is simply parked until the money is seen.
+     Both emails go out now, because the customer needs the account details and
+     the reference in writing, and the owner needs to know a transfer is coming.
+     Stock is deliberately NOT decremented here - it is reserved on payment, and
+     an unpaid transfer must not hold stock hostage. */
+  if (paymentMethod === "bank_transfer") {
+    await db
+      .update(t.orders)
+      .set({ paymentStatus: "awaiting_transfer", updatedAt: new Date() })
+      .where(eq(t.orders.id, orderId!));
+
+    // The basket has become an order, so empty it - otherwise the customer
+    // returns to a full basket and orders the same thing twice.
+    if (cart.token) {
+      const [row] = await db.select().from(t.carts).where(eq(t.carts.token, cart.token)).limit(1);
+      if (row) {
+        await db.delete(t.cartItems).where(eq(t.cartItems.cartId, row.id));
+        await db.update(t.carts).set({ discountCode: null }).where(eq(t.carts.id, row.id));
+      }
+    }
+
+    const [order] = await db.select().from(t.orders).where(eq(t.orders.id, orderId!)).limit(1);
+    const orderItemRows = await db
+      .select()
+      .from(t.orderItems)
+      .where(eq(t.orderItems.orderId, orderId!));
+    const bank = bankDetails()!;
+
+    await Promise.allSettled([
+      sendBankTransferInstructions(order, orderItemRows, bank),
+      sendNewOrderAlert(order, orderItemRows),
+    ]);
+
+    return NextResponse.json({
+      bankTransfer: true,
+      orderId,
+      orderNumber: order.number,
+      reference: transferReference(order.number),
+      amount: totals.grandTotal,
+      currency,
+    });
+  }
 
   const client = stripe();
   const metadata = {

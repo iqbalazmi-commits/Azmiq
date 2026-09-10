@@ -87,7 +87,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "How to ask",
         body: [
-          "Email hello@azmiq.com. We will respond within one month. If you are not satisfied you can complain to the Information Commissioner's Office at ico.org.uk or on 0303 123 1113.",
+          "Email shop@azmiq.com. We will respond within one month. If you are not satisfied you can complain to the Information Commissioner's Office at ico.org.uk or on 0303 123 1113.",
         ],
       },
     ],
@@ -495,7 +495,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "Tell us",
         body: [
-          "If something here does not work for you, email hello@azmiq.com and describe what happened. We will fix it and reply to you when we have. You do not need to know the technical name for the problem.",
+          "If something here does not work for you, email shop@azmiq.com and describe what happened. We will fix it and reply to you when we have. You do not need to know the technical name for the problem.",
         ],
       },
     ],
@@ -504,11 +504,18 @@ export const CONTENT: Record<string, ContentPage> = {
   contact: {
     title: "Contact",
     subtitle: "A person will reply",
-    description: "How to reach AZMIQ about an order, a return, or a question about copper.",
+    description: "How to reach AZMIQ about an order, a return, or a question about copper or leather.",
     sections: [
       {
         body: [
-          "Email hello@azmiq.com. We answer within one working day, usually sooner, and it will be a person rather than a macro.",
+          "Email shop@azmiq.com. We answer within one working day, usually sooner, and it will be a person rather than a macro.",
+          "Phone +44 7741 856782, UK business hours.",
+        ],
+      },
+      {
+        heading: "Follow AZMIQ",
+        body: [
+          "Instagram and Facebook: @azmiquk. New pieces, restocks and the workshop.",
         ],
       },
       {
@@ -523,7 +530,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "Wholesale and press",
         body: [
-          "Email hello@azmiq.com with 'wholesale' or 'press' in the subject line and it will reach the right person.",
+          "Email shop@azmiq.com with 'wholesale' or 'press' in the subject line and it will reach the right person.",
         ],
       },
     ],

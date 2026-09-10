@@ -4,7 +4,7 @@ import type Stripe from "stripe";
 import { db } from "@/db";
 import * as t from "@/db/schema";
 import { stripe } from "@/lib/stripe";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendNewOrderAlert } from "@/lib/email";
 import { recordServerPurchase } from "@/lib/analytics-server";
 
 export const runtime = "nodejs";
@@ -178,6 +178,7 @@ async function handleSucceeded(intent: Stripe.PaymentIntent) {
   // third party must never roll back a payment we have already taken.
   await Promise.allSettled([
     sendOrderConfirmation(fresh, items),
+    sendNewOrderAlert(fresh, items),
     recordServerPurchase(fresh, items),
   ]);
 }

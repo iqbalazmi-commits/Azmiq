@@ -6,9 +6,11 @@ import { CheckoutForm } from "@/components/shop/CheckoutForm";
 import { OrderSummary } from "@/components/shop/OrderSummary";
 import { Media } from "@/components/ui/Media";
 import { getCart } from "@/lib/cart";
-import { getCurrentCustomer } from "@/lib/auth";
+import { getCurrentCustomer, getCurrentAdmin } from "@/lib/auth";
+import { SITE } from "@/lib/site";
 import { getShippingZones } from "@/lib/shipping";
 import { stripeConfigured } from "@/lib/stripe";
+import { bankTransferConfigured } from "@/lib/bank-transfer";
 import { formatMoney } from "@/lib/money";
 import { COUNTRIES } from "@/lib/currency";
 
@@ -23,7 +25,14 @@ export default async function CheckoutPage() {
   const cart = await getCart();
   if (cart.lines.length === 0) redirect("/cart");
 
-  const [customer, zones] = await Promise.all([getCurrentCustomer(), getShippingZones()]);
+  const [customer, zones, admin] = await Promise.all([
+    getCurrentCustomer(),
+    getShippingZones(),
+    getCurrentAdmin(),
+  ]);
+
+  const cardAvailable = stripeConfigured();
+  const bankTransferAvailable = bankTransferConfigured();
 
   const serialisableZones = zones.map((zone) => ({
     id: zone.id,
@@ -47,22 +56,49 @@ export default async function CheckoutPage() {
         <h1 className="font-serif text-4xl text-ink">Checkout</h1>
         <p className="flex items-center gap-2 text-sm text-ink-muted">
           <Lock size={15} aria-hidden="true" />
-          Secure payment by Stripe
+          {cardAvailable ? "Secure payment by Stripe" : "Secure checkout"}
         </p>
       </div>
       <hr className="rule-accent mt-6" />
 
       <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_23rem] lg:gap-16">
-        <div>
-          {!stripeConfigured() ? (
+        <div className="min-w-0">
+          {/* Only a dead end when NEITHER method works. Cards off but bank
+              transfer on is a perfectly good shop, so say nothing.
+              A shopper must never be shown environment variable names: staff
+              get the fix, everyone else gets a plain apology and a way to reach us. */}
+          {!cardAvailable && !bankTransferAvailable ? (
             <div className="mb-8 rounded-lg border border-border-control bg-surface-sunken p-5">
-              <p className="font-medium text-ink">Payments are not connected yet</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
-                Add <code className="rounded-sm bg-surface px-1">STRIPE_SECRET_KEY</code> and{" "}
-                <code className="rounded-sm bg-surface px-1">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code>{" "}
-                to <code className="rounded-sm bg-surface px-1">.env.local</code>, then restart.
-                Everything up to the payment step works without them.
-              </p>
+              {admin ? (
+                <>
+                  <p className="font-medium text-ink">Payments are not connected yet</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                    Everything up to the payment step works. Finish the setup on the{" "}
+                    <Link
+                      href="/admin/payments"
+                      className="text-ink-brand underline underline-offset-4"
+                    >
+                      Payments page
+                    </Link>{" "}
+                    — it lists exactly what is missing.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-ink">Checkout is temporarily unavailable</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                    We are very sorry — we cannot take payments at this moment. Your basket is
+                    saved. Email us at{" "}
+                    <a
+                      href={`mailto:${SITE.email}`}
+                      className="text-ink-brand underline underline-offset-4"
+                    >
+                      {SITE.email}
+                    </a>{" "}
+                    and we will take your order by hand.
+                  </p>
+                </>
+              )}
             </div>
           ) : null}
 
@@ -76,6 +112,8 @@ export default async function CheckoutPage() {
               customer ? [customer.firstName, customer.lastName].filter(Boolean).join(" ") : null
             }
             publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null}
+            cardAvailable={cardAvailable}
+            bankTransferAvailable={bankTransferAvailable}
             cartLines={cart.lines.map((l) => ({
               sku: l.sku,
               title: l.productTitle,
@@ -85,7 +123,7 @@ export default async function CheckoutPage() {
           />
         </div>
 
-        <aside className="lg:sticky lg:top-28 lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <ul className="mb-6 flex flex-col gap-4">
             {cart.lines.map((line) => (
               <li key={line.id} className="flex gap-4">

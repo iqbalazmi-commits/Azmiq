@@ -67,18 +67,22 @@ async function main() {
         description: item.description,
         wellnessStory: item.wellnessStory ?? null,
         careInstructions: item.careInstructions ?? null,
-        material: item.slug.startsWith("acacia") ? "Sustainably sourced acacia wood" : "100% pure copper",
+        material:
+          item.material ??
+          (item.categories.includes("kitchen-utensils")
+            ? "Sustainably sourced acacia wood"
+            : "100% pure copper"),
         finish: item.finish,
         dimensions: item.dimensions,
         weightGrams: item.weightGrams,
         capacityMl: item.capacityMl ?? null,
         leakProof: item.leakProof,
-        foodGrade: true,
+        foodGrade: item.foodGrade ?? true,
         handcrafted: true,
         status: "active",
         featured: item.featured ?? false,
         position: index,
-        seoTitle: `${item.title} | 100% Pure Copper | AZMIQ`,
+        seoTitle: item.seoTitle,
         seoDescription: item.summary,
       })
       .returning();
@@ -90,32 +94,17 @@ async function main() {
         .map((category) => ({ productId: product.id, categoryId: category!.id })),
     );
 
-    await db.insert(t.productImages).values([
-      {
-        productId: product.id, position: 0, kind: "hero",
-        url: `/images/products/${item.slug}-hero.svg`,
-        alt: `${item.title} in ${item.finish.toLowerCase()} copper, photographed on warm linen`,
-        width: 1200, height: 1500,
-      },
-      {
-        productId: product.id, position: 1, kind: "macro",
-        url: `/images/products/${item.slug}-macro.svg`,
-        alt: `Close-up of the ${item.finish.toLowerCase()} surface texture on the ${item.title}`,
-        width: 1200, height: 1200,
-      },
-      {
-        productId: product.id, position: 2, kind: "lifestyle",
-        url: `/images/products/${item.slug}-lifestyle.svg`,
-        alt: `${item.title} in use on a kitchen table`,
-        width: 1200, height: 1500,
-      },
-      {
-        productId: product.id, position: 3, kind: "scale",
-        url: `/images/products/${item.slug}-scale.svg`,
-        alt: `${item.title} shown beside a hand for scale`,
-        width: 1200, height: 1500,
-      },
-    ]);
+    await db.insert(t.productImages).values(
+      item.images.map((image, position) => ({
+        productId: product.id,
+        position,
+        kind: image.kind,
+        url: image.file,
+        alt: image.alt,
+        width: image.width,
+        height: image.height,
+      })),
+    );
 
     const variantRows = await db
       .insert(t.variants)

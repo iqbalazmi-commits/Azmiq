@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { Loader2, Lock } from "lucide-react";
+import { loadStripe, type Appearance, type Stripe } from "@stripe/stripe-js";
+import { Building2, CreditCard, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field, Select } from "@/components/ui/Field";
 import { formatMoney, type Currency } from "@/lib/money";
@@ -50,7 +51,13 @@ type Props = {
   customerName: string | null;
   publishableKey: string | null;
   cartLines: { sku: string; title: string; quantity: number; unitAmount: number }[];
+  /** Which ways of paying this shop currently accepts. At least one is true,
+      or the checkout page would not have rendered the form at all. */
+  cardAvailable: boolean;
+  bankTransferAvailable: boolean;
 };
+
+type PaymentMethod = "card" | "bank_transfer";
 
 let stripePromise: Promise<Stripe | null> | null = null;
 function getStripe(key: string) {
@@ -58,7 +65,24 @@ function getStripe(key: string) {
   return stripePromise;
 }
 
+/* Stripe renders the card fields inside its own iframe, so our custom
+   properties cannot cascade in - the appearance API needs literal values.
+
+   Reading them back out of the live token file, rather than copying hexes by
+   hand, is the whole point: the hand-copied version silently kept the old teal
+   palette right through the rebrand, on the one screen where money changes
+   hands. Anything defined in tokens.css now follows automatically. */
+function token(name: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
 export function CheckoutForm(props: Props) {
+  const router = useRouter();
+  const [method, setMethod] = useState<PaymentMethod>(
+    props.cardAvailable ? "card" : "bank_transfer",
+  );
   const [email, setEmail] = useState(props.customerEmail ?? "");
   const [name, setName] = useState(props.customerName ?? "");
   const [line1, setLine1] = useState("");
@@ -77,6 +101,9 @@ export function CheckoutForm(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [pending, setPending] = useState(false);
+  // Held true across the navigation to the instructions page, so the order
+  // cannot be submitted a second time while the router is still working.
+  const [redirecting, setRedirecting] = useState(false);
 
   const zone = useMemo(
     () =>
@@ -84,6 +111,31 @@ export function CheckoutForm(props: Props) {
       props.zones.find((z) => z.countries.includes("*")) ??
       null,
     [props.zones, country],
+  );
+
+  // Empty deps is deliberate: `token` reads the stylesheet, not props or state,
+  // so there is nothing to react to. useMemo re-runs during client hydration,
+  // which is where `window` exists and the real values come back.
+  const appearance: Appearance = useMemo(
+    () => ({
+      theme: "flat",
+      variables: {
+        colorPrimary: token("--color-surface-brand", "#00A8CC"),
+        // Matches the address inputs above it, which are bg-surface-raised.
+        colorBackground: token("--color-surface-raised", "#F4F4F5"),
+        colorText: token("--color-ink", "#18181B"),
+        colorTextSecondary: token("--color-ink-muted", "#52525B"),
+        colorDanger: token("--color-danger", "#C81E1E"),
+        borderRadius: token("--radius-md", "8px"),
+        // Our body face is self-hosted by next/font and unreachable from
+        // Stripe's iframe. Pulling it from a CDN instead would add a
+        // third-party request to the payment step for three numeric fields,
+        // so match the metrics with a system stack rather than pay that.
+        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+        spacingUnit: "4px",
+      },
+    }),
+    [],
   );
 
   // Reset the delivery choice when the destination changes - a UK rate is not
@@ -109,6 +161,7 @@ export function CheckoutForm(props: Props) {
           shippingRateId: rateId,
           customerNote: note,
           marketingConsent,
+          paymentMethod: method,
         }),
       });
       const body = await response.json();
@@ -116,6 +169,15 @@ export function CheckoutForm(props: Props) {
       if (!response.ok) {
         setError(body.error ?? "Something went wrong.");
         setFieldErrors(body.issues ?? {});
+        return;
+      }
+
+      // A bank transfer is already an order at this point - there is no card
+      // step to render, so send them straight to the instructions page. Keep
+      // `pending` true so the button cannot be pressed twice while routing.
+      if (body.bankTransfer) {
+        setRedirecting(true);
+        router.push(`/checkout/confirmation?order=${body.orderId}`);
         return;
       }
 
@@ -350,17 +412,54 @@ export function CheckoutForm(props: Props) {
             </p>
           ) : null}
 
+          {/* Only worth asking when there is genuinely a choice. */}
+          {!clientSecret && props.cardAvailable && props.bankTransferAvailable ? (
+            <fieldset className="mt-10">
+              <legend className="font-serif text-2xl text-ink">How would you like to pay?</legend>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <MethodChoice
+                  checked={method === "card"}
+                  onSelect={() => setMethod("card")}
+                  Icon={CreditCard}
+                  title="Card"
+                  blurb="Visa, Mastercard, Amex, Apple Pay or Google Pay. Instant — we post it straight away."
+                />
+                <MethodChoice
+                  checked={method === "bank_transfer"}
+                  onSelect={() => setMethod("bank_transfer")}
+                  Icon={Building2}
+                  title="Bank transfer"
+                  blurb="Pay from your banking app. We reserve your order and post it once the payment lands."
+                />
+              </div>
+            </fieldset>
+          ) : null}
+
           {!clientSecret ? (
-            <Button type="submit" size="lg" className="mt-8 w-full" disabled={pending || !rateId}>
-              {pending ? (
+            <Button
+              type="submit"
+              size="lg"
+              className="mt-8 w-full"
+              disabled={pending || redirecting || !rateId}
+            >
+              {pending || redirecting ? (
                 <>
                   <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-                  Preparing payment
+                  {method === "bank_transfer" ? "Placing your order" : "Preparing payment"}
                 </>
+              ) : method === "bank_transfer" ? (
+                "Place order"
               ) : (
                 "Continue to payment"
               )}
             </Button>
+          ) : null}
+
+          {!clientSecret && method === "bank_transfer" ? (
+            <p className="mt-3 text-center text-xs leading-relaxed text-ink-muted">
+              You will see our account details and your payment reference on the next page, and we
+              will email them to you as well. Nothing is charged automatically.
+            </p>
           ) : null}
         </fieldset>
       </form>
@@ -387,21 +486,7 @@ export function CheckoutForm(props: Props) {
           <div className="mt-6">
             <Elements
               stripe={getStripe(props.publishableKey)}
-              options={{
-                clientSecret,
-                appearance: {
-                  theme: "flat",
-                  variables: {
-                    colorPrimary: "#0E3B43",
-                    colorBackground: "#FFFFFF",
-                    colorText: "#14181A",
-                    colorDanger: "#B3261E",
-                    fontFamily: "var(--font-hanken), system-ui, sans-serif",
-                    borderRadius: "4px",
-                    spacingUnit: "4px",
-                  },
-                },
-              }}
+              options={{ clientSecret, appearance }}
             >
               <PaymentStep amount={amount} currency={props.currency} />
             </Elements>
@@ -409,6 +494,44 @@ export function CheckoutForm(props: Props) {
         </section>
       ) : null}
     </div>
+  );
+}
+
+/* A radio in substance - one of a set, arrow-key navigable, announced as a
+   radio - but with the whole card as the hit area. */
+function MethodChoice({
+  checked, onSelect, Icon, title, blurb,
+}: {
+  checked: boolean;
+  onSelect: () => void;
+  Icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
+  title: string;
+  blurb: string;
+}) {
+  return (
+    <label
+      className={
+        "flex cursor-pointer gap-3 rounded-lg border p-4 transition-colors " +
+        (checked
+          ? "border-2 border-surface-brand bg-surface-brand-wash"
+          : "border-border-control bg-surface-raised hover:border-ink/25")
+      }
+    >
+      <input
+        type="radio"
+        name="paymentMethod"
+        checked={checked}
+        onChange={onSelect}
+        className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-surface-brand)]"
+      />
+      <span className="min-w-0">
+        <span className="flex items-center gap-2 font-medium text-ink">
+          <Icon size={16} aria-hidden={true} />
+          {title}
+        </span>
+        <span className="mt-1 block text-sm leading-relaxed text-ink-muted">{blurb}</span>
+      </span>
+    </label>
   );
 }
 

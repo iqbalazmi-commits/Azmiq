@@ -59,9 +59,7 @@ export function Price({
         ) : null}
 
         {onSale && saved !== null && showSavedBadge ? (
-          // Copper as a BACKGROUND with near-black text measures 4.71:1.
-          // Copper as text on warm white would be 3.58:1 and fail AA.
-          <span className="rounded-sm bg-surface-accent px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-ink-on-accent">
+          <span className="text-2xs uppercase tracking-widest text-ink-muted">
             Save {saved}%
           </span>
         ) : null}

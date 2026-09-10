@@ -6,6 +6,7 @@ import { db } from "@/db";
 import * as t from "@/db/schema";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatMoney, type Currency } from "@/lib/money";
+import { bankDetails, transferReference } from "@/lib/bank-transfer";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
@@ -26,8 +27,11 @@ export default async function ConfirmationPage({
 }) {
   const params = await searchParams;
   const intentId = typeof params.payment_intent === "string" ? params.payment_intent : null;
+  // Bank transfers never touch Stripe, so they come back by order id instead.
+  // The id is a UUID: unguessable, which is what makes it safe to look up.
+  const orderIdParam = typeof params.order === "string" ? params.order : null;
 
-  if (!intentId) {
+  if (!intentId && !orderIdParam) {
     return (
       <Shell title="We could not find that order">
         <p className="mt-4 text-ink-muted">
@@ -44,7 +48,11 @@ export default async function ConfirmationPage({
   const [order] = await db
     .select()
     .from(t.orders)
-    .where(eq(t.orders.stripePaymentIntentId, intentId))
+    .where(
+      orderIdParam
+        ? eq(t.orders.id, orderIdParam)
+        : eq(t.orders.stripePaymentIntentId, intentId!),
+    )
     .limit(1);
 
   if (!order) {
@@ -62,18 +70,68 @@ export default async function ConfirmationPage({
   const currency = order.currency as Currency;
   const address = order.shippingAddress as Record<string, string> | null;
   const settled = order.status !== "pending";
+  const awaitingTransfer = order.paymentMethod === "bank_transfer" && !settled;
+  const bank = awaitingTransfer ? bankDetails() : null;
+  const reference = transferReference(order.number);
 
   return (
     <Shell
-      title={settled ? "Thank you — your order is confirmed" : "Payment received"}
-      icon={settled ? "check" : "clock"}
+      title={
+        awaitingTransfer
+          ? "Your order is reserved"
+          : settled
+            ? "Thank you — your order is confirmed"
+            : "Payment received"
+      }
+      icon={settled && !awaitingTransfer ? "check" : "clock"}
     >
       <p className="mt-4 text-lg text-ink-muted">
-        Order <strong className="text-ink">#{order.number}</strong>. A receipt is on its way to{" "}
-        <strong className="text-ink">{order.email}</strong>.
+        Order <strong className="text-ink">#{order.number}</strong>.{" "}
+        {awaitingTransfer ? (
+          <>
+            These details are also on their way to{" "}
+            <strong className="text-ink">{order.email}</strong>.
+          </>
+        ) : (
+          <>
+            A receipt is on its way to <strong className="text-ink">{order.email}</strong>.
+          </>
+        )}
       </p>
 
-      {!settled ? (
+      {/* ------------------------------------------- how to pay by transfer */}
+      {awaitingTransfer && bank ? (
+        <div className="mt-8 rounded-lg border-2 border-surface-brand bg-surface-brand-wash p-6 text-left">
+          <h2 className="font-serif text-xl text-ink">Transfer to complete your order</h2>
+          <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+            Send{" "}
+            <strong className="text-ink">{formatMoney(order.grandTotal, currency)}</strong> from your
+            banking app using the details below. We post your order as soon as it lands, usually the
+            same working day.
+          </p>
+
+          <dl className="mt-5 divide-y divide-[color-mix(in_srgb,var(--color-ink)_12%,transparent)] border-y border-[color-mix(in_srgb,var(--color-ink)_12%,transparent)]">
+            <BankRow label="Amount" value={formatMoney(order.grandTotal, currency)} />
+            <BankRow label="Reference" value={reference} highlight />
+            <BankRow label="Account name" value={bank.accountName} />
+            <BankRow label="Sort code" value={bank.sortCode} />
+            <BankRow label="Account number" value={bank.accountNumber} />
+            {bank.bankName ? <BankRow label="Bank" value={bank.bankName} /> : null}
+            {bank.iban ? <BankRow label="IBAN" value={bank.iban} /> : null}
+            {bank.bic ? <BankRow label="BIC / SWIFT" value={bank.bic} /> : null}
+          </dl>
+
+          <p className="mt-4 text-sm leading-relaxed text-ink">
+            <strong>Please quote {reference} as the reference.</strong>{" "}
+            <span className="text-ink-muted">
+              It is how we match your payment to this order. Nothing is charged automatically and we
+              hold no card details.
+            </span>
+          </p>
+        </div>
+      ) : null}
+
+      {!settled && !awaitingTransfer ? (
         <p className="mt-4 rounded-md bg-surface-sunken p-4 text-sm leading-relaxed text-ink-muted">
           Your payment has gone through. We are finishing the last step of confirming it, which
           usually takes a few seconds. You do not need to pay again or refresh.
@@ -106,7 +164,9 @@ export default async function ConfirmationPage({
             value={order.shippingTotal === 0 ? "Free" : formatMoney(order.shippingTotal, currency)}
           />
           <div className="mt-2 flex items-baseline justify-between border-t border-border pt-3">
-            <dt className="font-serif text-lg text-ink">Total paid</dt>
+            <dt className="font-serif text-lg text-ink">
+              {awaitingTransfer ? "Total to transfer" : "Total paid"}
+            </dt>
             <dd className="font-serif text-lg tabular-nums text-ink">
               {formatMoney(order.grandTotal, currency)}
             </dd>
@@ -158,6 +218,27 @@ export default async function ConfirmationPage({
         , or start a return within 30 days.
       </p>
     </Shell>
+  );
+}
+
+function BankRow({
+  label, value, highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2.5">
+      <dt className="text-sm text-ink-muted">{label}</dt>
+      <dd
+        className={
+          "font-medium tabular-nums text-ink " + (highlight ? "tracking-wide" : "")
+        }
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
