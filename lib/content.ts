@@ -42,9 +42,10 @@ export const CONTENT: Record<string, ContentPage> = {
       },
       {
         heading: "What we collect and why",
-        body: ["We hold personal data in four situations, each with its own lawful basis under the UK GDPR."],
+        body: ["We hold personal data in five situations, each with its own lawful basis under the UK GDPR."],
         list: [
           "When you place an order: your name, email, delivery address, phone number if you give one, and what you bought. Lawful basis: performance of a contract. We cannot ship an order without it.",
+          "When you start checkout but do not finish: your email and what was in your basket, so we can send one reminder with a link back to it. Lawful basis: legitimate interests, under the soft opt-in rules for someone part-way through a purchase. We never send a second reminder, and every reminder has a one-click way to stop them for good.",
           "When you pay: nothing. Card details go directly to Stripe and never reach our servers. We store only Stripe's reference for the payment, so we can issue a refund.",
           "When you subscribe to emails: your email address, and which emails you opened. Lawful basis: consent, which you can withdraw in one click from any email.",
           "When you browse with analytics accepted: pages viewed and products looked at, through Google Analytics. Lawful basis: consent. Decline the cookie banner and none of it is collected.",
@@ -64,7 +65,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "How long we keep it",
         body: [
-          "Order records are kept for seven years, because HMRC requires it for tax purposes. Marketing subscriptions are kept until you unsubscribe. Analytics data is retained for 14 months. Abandoned baskets are deleted after 30 days.",
+          "Order records are kept for seven years, because HMRC requires it for tax purposes. Marketing subscriptions are kept until you unsubscribe. Analytics data is retained for 14 months. Abandoned baskets are deleted after 30 days, and the link in a basket reminder stops working at the same point.",
         ],
       },
       {

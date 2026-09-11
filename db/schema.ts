@@ -225,6 +225,11 @@ export const orders = pgTable("orders", {
   trackingUrl: text("tracking_url"),
   customerNote: text("customer_note"),
   internalNote: text("internal_note"),
+  // Abandoned-basket recovery. The token is what the reminder links to; it is
+  // random rather than the order id, so the id never appears in an email URL.
+  // recoverySentAt doubles as the "only ever one reminder" guard.
+  recoveryToken: text("recovery_token"),
+  recoverySentAt: timestamp("recovery_sent_at", { withTimezone: true }),
   placedAt: timestamp("placed_at", { withTimezone: true }),
   createdAt: created(),
   updatedAt: updated(),
@@ -233,7 +238,16 @@ export const orders = pgTable("orders", {
   index("orders_email_idx").on(t.email),
   uniqueIndex("orders_payment_intent_idx").on(t.stripePaymentIntentId),
   index("orders_status_idx").on(t.status),
+  uniqueIndex("orders_recovery_token_idx").on(t.recoveryToken),
 ]);
+
+/** Addresses that asked not to receive basket reminders. Keyed by address
+    rather than by order, so opting out once covers every future basket too. */
+export const emailSuppressions = pgTable("email_suppressions", {
+  email: text("email").primaryKey(),              // always stored lowercase
+  reason: text("reason").notNull().default("basket_reminder_unsubscribe"),
+  createdAt: created(),
+});
 
 /** Line items snapshot title, sku and unit price at the moment of payment.
     Renaming a product next year must not rewrite last year's invoices. */

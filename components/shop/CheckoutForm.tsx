@@ -246,7 +246,7 @@ export function CheckoutForm(props: Props) {
               value={email}
               onChange={setEmail}
               error={fieldErrors.email?.[0]}
-              hint="For your receipt and delivery updates."
+              hint="For your receipt and delivery updates, and one reminder if you do not finish."
             />
             <Field
               id="name"

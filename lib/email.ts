@@ -35,6 +35,8 @@ type Message = {
   text: string;
   /** So the owner can hit reply on an order alert and reach the customer. */
   replyTo?: string;
+  /** Extra headers, e.g. List-Unsubscribe, which Gmail and Yahoo expect. */
+  headers?: Record<string, string>;
 };
 
 export function emailTransport(): "resend" | "smtp" | "gmail" | "none" {
@@ -84,6 +86,7 @@ async function sendViaResend(message: Message, from: string): Promise<boolean> {
       from,
       to: message.to,
       ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+      ...(message.headers ? { headers: message.headers } : {}),
       subject: message.subject,
       html: message.html,
       text: message.text,
@@ -118,6 +121,7 @@ async function sendViaSmtp(message: Message, from: string): Promise<boolean> {
     from,
     to: message.to,
     replyTo: message.replyTo,
+    headers: message.headers,
     subject: message.subject,
     html: message.html,
     text: message.text,
@@ -141,6 +145,7 @@ async function sendViaGmail(message: Message, from: string): Promise<boolean> {
     from,
     to: message.to,
     replyTo: message.replyTo,
+    headers: message.headers,
     subject: message.subject,
     html: message.html,
     text: message.text,
@@ -472,6 +477,87 @@ Open in admin: ${adminUrl}`;
     subject: `${awaitingTransfer ? "Bank transfer pending" : "New order"} #${order.number} — ${origin} — ${formatMoney(order.grandTotal, currency)}`,
     html: shell(`New order #${order.number}`, body),
     text,
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   BASKET REMINDER
+
+   One email, sent once, to someone who reached checkout and gave their address
+   but did not pay. It is a service note about their own unfinished purchase,
+   not marketing: no discount bait, no second nudge, and a way to stop it that
+   covers every future basket as well as this one.
+   --------------------------------------------------------------------------- */
+export async function sendBasketReminder(
+  order: Order,
+  items: OrderItem[],
+  links: { restore: string; unsubscribe: string; oneClickUnsubscribe: string },
+): Promise<boolean> {
+  const currency = order.currency as Currency;
+  const name = (order.shippingAddress as Record<string, string> | null)?.name?.trim();
+  const firstName = name ? name.split(/\s+/)[0] : null;
+
+  const rows = items
+    .map(
+      (item) => `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid #E3DED6;">
+          <div style="color:${INK};">${escapeHtml(item.productTitle)}</div>
+          <div style="font-size:13px;color:${MUTED};">${escapeHtml(item.variantTitle)} &middot; qty ${item.quantity}</div>
+        </td>
+        <td align="right" style="padding:10px 0;border-bottom:1px solid #E3DED6;white-space:nowrap;">
+          ${formatMoney(item.lineTotal, currency)}
+        </td>
+      </tr>`,
+    )
+    .join("");
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:400;">Your basket is saved</h1>
+    <div style="width:48px;height:1px;background:${COPPER};margin:16px 0 20px;"></div>
+    <p style="margin:0 0 22px;color:${MUTED};line-height:1.7;">
+      ${firstName ? `${escapeHtml(firstName)}, you` : "You"} were nearly there. Everything you chose is still
+      waiting, and one click brings it back &mdash; on this device or any other.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
+      ${rows}
+      <tr><td style="padding:12px 0;font-size:15px;">Basket total</td>
+          <td align="right" style="padding:12px 0;font-size:15px;">${formatMoney(order.subtotal, currency)}</td></tr>
+    </table>
+    <p style="margin:26px 0 0;">
+      <a href="${links.restore}" style="display:inline-block;background:${TEAL};color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:4px;">Return to your basket</a>
+    </p>
+    <p style="margin:22px 0 0;font-size:13px;color:${MUTED};line-height:1.7;">
+      Prices and stock are checked again when you return, so what you see then is what you pay.
+    </p>
+    <p style="margin:18px 0 0;font-size:12px;color:${MUTED};line-height:1.7;">
+      This is the only reminder we will send about this basket.
+      <a href="${links.unsubscribe}" style="color:${MUTED};">Stop basket reminders</a>.
+    </p>`;
+
+  const text = `Your basket is saved.
+
+${firstName ? `${firstName}, you` : "You"} were nearly there. Everything you chose is still waiting:
+
+${items.map((i) => `${i.productTitle} (${i.variantTitle}) x${i.quantity}  ${formatMoney(i.lineTotal, currency)}`).join("\n")}
+
+Basket total: ${formatMoney(order.subtotal, currency)}
+
+Return to your basket: ${links.restore}
+
+Prices and stock are checked again when you return.
+
+This is the only reminder we will send about this basket.
+Stop basket reminders: ${links.unsubscribe}`;
+
+  return send({
+    to: order.email,
+    subject: "Your AZMIQ basket is saved",
+    html: shell("Your basket is saved", body),
+    text,
+    headers: {
+      "List-Unsubscribe": `<${links.oneClickUnsubscribe}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
   });
 }
 

@@ -18,12 +18,18 @@ export const metadata: Metadata = {
 // The basket is per-visitor; nothing about it may be cached or prerendered.
 export const dynamic = "force-dynamic";
 
-export default async function CartPage() {
-  const cart = await getCart();
+export default async function CartPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [cart, params] = await Promise.all([getCart(), searchParams]);
+  const notice = restoreNotice(params);
 
   if (cart.lines.length === 0) {
     return (
       <div className="container-page py-28 text-center">
+        {notice ? <RestoreBanner {...notice} className="mx-auto mb-10 max-w-lg text-left" /> : null}
         <h1 className="font-serif text-4xl text-ink">Your basket is empty</h1>
         <p className="mx-auto mt-4 max-w-md text-ink-muted">
           Nothing in here yet. The water bottles are the place most people start.
@@ -42,6 +48,7 @@ export default async function CartPage() {
 
   return (
     <div className="container-page py-12">
+      {notice ? <RestoreBanner {...notice} className="mb-8" /> : null}
       <h1 className="font-serif text-4xl text-ink">Your basket</h1>
       <hr className="rule-accent mt-6" />
 
@@ -191,5 +198,78 @@ function QuantityButton({
         <span className="sr-only">{label}</span>
       </button>
     </form>
+  );
+}
+
+/* ------------------------------------------------------- RESTORE NOTICE */
+
+type Notice = { tone: "ok" | "warn"; title: string; body: string };
+
+/** Arriving from a basket reminder. Says plainly what came back and what did
+    not, rather than silently dropping a sold-out line. */
+function restoreNotice(params: Record<string, string | string[] | undefined>): Notice | null {
+  const one = (key: string) => (typeof params[key] === "string" ? (params[key] as string) : null);
+
+  const restored = one("restored");
+  if (restored !== null) {
+    const count = Number(restored);
+    const missing = Number(one("missing") ?? 0);
+    if (count === 0) {
+      return {
+        tone: "warn",
+        title: "We could not restore your basket",
+        body: "The pieces you chose are no longer available. Have a look at what is in stock now.",
+      };
+    }
+    return {
+      tone: missing > 0 ? "warn" : "ok",
+      title: "Welcome back — your basket is restored",
+      body:
+        missing > 0
+          ? `${missing === 1 ? "One item is" : `${missing} items are`} no longer available, so we left ${missing === 1 ? "it" : "them"} out. Prices and stock have been checked again.`
+          : "Everything you chose is back. Prices and stock have been checked again, so what you see is what you pay.",
+    };
+  }
+
+  switch (one("restore")) {
+    case "expired":
+      return {
+        tone: "warn",
+        title: "That link has expired",
+        body: "Basket links last 30 days. The pieces you chose may well still be in stock.",
+      };
+    case "completed":
+      return {
+        tone: "ok",
+        title: "You already completed that order",
+        body: "There is nothing to restore — thank you. Your order is on its way to being packed.",
+      };
+    case "invalid":
+      return {
+        tone: "warn",
+        title: "That link did not work",
+        body: "It may have been copied incompletely. The pieces you chose may well still be in stock.",
+      };
+    default:
+      return null;
+  }
+}
+
+function RestoreBanner({ tone, title, body, className = "" }: Notice & { className?: string }) {
+  return (
+    <div
+      role="status"
+      className={
+        "rounded-lg border p-5 " +
+        (tone === "ok"
+          ? "border-[var(--color-success)] bg-success-wash"
+          : "border-border-control bg-surface-sunken") +
+        " " +
+        className
+      }
+    >
+      <p className="font-medium text-ink">{title}</p>
+      <p className="mt-1 text-sm leading-relaxed text-ink-muted">{body}</p>
+    </div>
   );
 }
