@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Media } from "@/components/ui/Media";
+import { Rating } from "@/components/ui/Rating";
 import { formatMoney, isOnSale } from "@/lib/money";
 import type { CatalogueProduct } from "@/lib/data";
 
@@ -59,6 +60,10 @@ export function ProductCard({
           <span className="absolute left-4 top-4 rounded-sm bg-surface-inverse/90 px-2.5 py-1 text-2xs uppercase tracking-widest text-ink-inverse">
             Sold out
           </span>
+        ) : onSale ? (
+          <span className="absolute left-4 top-4 rounded-sm bg-surface/92 px-2.5 py-1 text-2xs uppercase tracking-widest text-ink">
+            Sale
+          </span>
         ) : null}
       </div>
 
@@ -69,6 +74,15 @@ export function ProductCard({
             {product.title}
           </Link>
         </h3>
+
+        {product.rating ? (
+          <Rating
+            value={product.rating.average}
+            count={product.rating.count}
+            size="sm"
+            className="mt-2"
+          />
+        ) : null}
 
         {product.subtitle ? (
           <p className="mt-2 text-sm leading-relaxed text-ink-muted">{product.subtitle}</p>
