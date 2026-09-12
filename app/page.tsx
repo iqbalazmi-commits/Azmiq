@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Globe, Sparkles, ShieldCheck, ArrowRight } from "lucide-react";
+import { Globe, Sparkles, ShieldCheck, ArrowRight, PackageCheck, RotateCcw } from "lucide-react";
 import { Media } from "@/components/ui/Media";
 import { ButtonLink } from "@/components/ui/Button";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -64,20 +64,20 @@ export default async function HomePage() {
       <section className="relative isolate flex min-h-[82svh] items-end overflow-hidden bg-surface-inverse">
         <HeroCarousel slides={slides} />
 
-        <div className="container-page relative z-10 w-full pb-16 pt-24 md:pb-24 md:pt-28">
-          <div className="max-w-xl rounded-lg bg-surface/92 p-9 shadow-lift ring-1 ring-black/[0.05] backdrop-blur-md md:p-14">
+        <div className="container-page relative z-10 w-full pb-10 pt-16 sm:pb-16 sm:pt-24 md:pb-24 md:pt-28">
+          <div className="max-w-xl rounded-lg bg-surface/92 p-7 shadow-lift ring-1 ring-black/[0.05] backdrop-blur-md sm:p-9 md:p-14">
             <p className="eyebrow text-ink-muted">Modern luxury &middot; Artisanal craft</p>
-            <hr className="rule-accent mt-5" />
-            <h1 className="mt-6 font-serif text-[2.35rem] leading-[1.1] tracking-tightest text-ink sm:text-[2.9rem] lg:text-[3.4rem]">
+            <hr className="rule-accent mt-4 sm:mt-5" />
+            <h1 className="mt-5 font-serif text-[2.2rem] leading-[1.1] tracking-tightest text-ink sm:mt-6 sm:text-[2.9rem] lg:text-[3.4rem]">
               Considered goods,
               <br />
               made to last.
             </h1>
-            <p className="mt-6 max-w-md leading-relaxed text-ink-muted">
+            <p className="mt-5 max-w-md leading-relaxed text-ink-muted sm:mt-6">
               Leather, pure copper drinkware and home essentials &mdash; a small, curated
               collection, priced openly and shipped worldwide.
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+            <div className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-4 sm:mt-9">
               <ButtonLink href="/collections/all" size="lg">
                 Shop the collection
               </ButtonLink>
@@ -94,6 +94,23 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* A short, early reassurance line makes the delivery promise visible
+          before a shopper starts comparing the catalogue. */}
+      <section aria-label="Shopping reassurance" className="border-b border-border bg-surface">
+        <div className="container-page grid gap-3 py-4 text-sm text-ink-muted sm:grid-cols-3 sm:gap-6">
+          {[
+            { Icon: PackageCheck, text: "Tracked worldwide shipping" },
+            { Icon: RotateCcw, text: "14-day returns" },
+            { Icon: ShieldCheck, text: "Free UK delivery over £50" },
+          ].map(({ Icon, text }) => (
+            <p key={text} className="flex items-center justify-center gap-2 sm:justify-start">
+              <Icon size={16} className="text-ink-wellness" aria-hidden="true" />
+              {text}
+            </p>
+          ))}
         </div>
       </section>
 
