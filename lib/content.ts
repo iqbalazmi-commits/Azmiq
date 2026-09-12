@@ -132,7 +132,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "Your right to cancel",
         body: [
-          "Under the Consumer Contracts Regulations 2013 you may cancel within 14 days of receiving your order, for any reason, and get a full refund including standard delivery. Our own returns window is longer - 30 days - and is set out in the refund policy.",
+          "Under the Consumer Contracts Regulations 2013 you may cancel within 14 days of receiving your order, for any reason, and get a full refund including standard delivery. Our own returns window matches that period, and is set out in the refund policy.",
         ],
       },
       {
@@ -159,13 +159,13 @@ export const CONTENT: Record<string, ContentPage> = {
 
   refunds: {
     title: "Returns and refunds",
-    subtitle: "Thirty days, free, no interrogation",
+    subtitle: "Fourteen days, free, no interrogation",
     description: "How to return an AZMIQ order and when you will get your money back.",
     updated: LAST_UPDATED,
     sections: [
       {
         body: [
-          "If a piece is not right, send it back within 30 days of delivery and we will refund it. Return postage is on us within the UK. We do not require the original packaging, and we do not ask you to justify the decision.",
+          "If a piece is not right, send it back within 14 days of delivery and we will refund it. Return postage is on us within the UK. We do not require the original packaging, and we do not ask you to justify the decision.",
         ],
       },
       {
@@ -197,7 +197,7 @@ export const CONTENT: Record<string, ContentPage> = {
       {
         heading: "Outside the UK",
         body: [
-          "International returns are accepted on the same 30-day terms, but return postage is at your cost unless the item is faulty. We refund any import VAT we collected; duties paid to your local customs authority must be reclaimed from them.",
+          "International returns are accepted on the same 14-day terms, but return postage is at your cost unless the item is faulty. We refund any import VAT we collected; duties paid to your local customs authority must be reclaimed from them.",
         ],
       },
     ],
@@ -210,29 +210,37 @@ export const CONTENT: Record<string, ContentPage> = {
     sections: [
       {
         body: [
-          "Flat £10 delivery anywhere in the world. Everything is sent tracked, everything is packed plastic-free, and it takes 7 to 11 working days from order to doorstep wherever you are.",
+          "Delivery is a flat charge in whatever currency you are shopping in. Everything is sent tracked, everything is packed plastic-free, and it takes 7 to 11 working days from order to doorstep wherever you are.",
         ],
       },
       {
         heading: "United Kingdom",
         list: [
-          "Tracked - £10, 7 to 11 working days. Free on orders over £50.",
+          "Tracked - £5, 7 to 11 working days. Free on orders over £50.",
         ],
         body: [],
       },
       {
         heading: "Europe",
         list: [
-          "Tracked with DHL - £10, 7 to 11 working days. Free on orders over £120.",
+          "Tracked with DHL - 20 in the currency you are shopping in (£20, €20 or $20), 7 to 11 working days. Free on orders over £120.",
           "For orders under €150 we collect import VAT at checkout under IOSS, so there is nothing to pay on delivery.",
           "For orders over €150 the carrier collects import VAT and any customs charge before delivery.",
         ],
         body: [],
       },
       {
+        heading: "Australia and New Zealand",
+        list: [
+          "DHL Express, fully tracked - 30 in the currency you are shopping in (A$30, £30 or $30), 7 to 11 working days.",
+          "Shipped duties unpaid. UK VAT is removed at checkout, and import duties and local taxes are payable to the carrier on delivery.",
+        ],
+        body: [],
+      },
+      {
         heading: "Rest of world",
         list: [
-          "DHL Express, fully tracked - £10, 7 to 11 working days.",
+          "DHL Express, fully tracked - 20 in the currency you are shopping in (£20, €20 or $20), 7 to 11 working days.",
           "Shipped duties unpaid. UK VAT is removed at checkout, and import duties and local taxes are payable to the carrier on delivery.",
         ],
         body: [],

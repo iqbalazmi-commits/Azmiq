@@ -64,7 +64,7 @@ export default async function AccountPage() {
           <RotateCcw size={22} className="text-ink-brand" aria-hidden="true" />
           <span className="flex-1">
             <span className="block font-medium text-ink">Start a return</span>
-            <span className="block text-sm text-ink-muted">30 days, free, no questions</span>
+            <span className="block text-sm text-ink-muted">14 days, free, no questions</span>
           </span>
           <ChevronRight size={18} className="text-ink-muted" aria-hidden="true" />
         </Link>

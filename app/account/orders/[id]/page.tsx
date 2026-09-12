@@ -15,7 +15,7 @@ import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 export const metadata: Metadata = { title: "Order", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-const RETURN_WINDOW_DAYS = 30;
+const RETURN_WINDOW_DAYS = 14;
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

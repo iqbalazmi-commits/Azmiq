@@ -215,7 +215,7 @@ export default async function ConfirmationPage({
         <Link href="/account/orders" className="text-ink-brand underline underline-offset-4">
           your account
         </Link>
-        , or start a return within 30 days.
+        , or start a return within 14 days.
       </p>
     </Shell>
   );

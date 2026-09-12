@@ -20,7 +20,7 @@ import { sendReturnReceived } from "@/lib/email";
    address has shopped here.
    =========================================================================== */
 
-const RETURN_WINDOW_DAYS = 30;
+const RETURN_WINDOW_DAYS = 14;
 
 export type LookupResult =
   | { ok: true; order: LookupOrder }

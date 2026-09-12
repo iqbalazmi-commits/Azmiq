@@ -6,7 +6,7 @@ import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 export const metadata: Metadata = {
   title: "Start a return",
   description:
-    "Return anything within 30 days, free. Enter your order number and email to get a prepaid label - no account needed.",
+    "Return anything within 14 days, free. Enter your order number and email to get a prepaid label - no account needed.",
   alternates: { canonical: "/returns" },
 };
 
@@ -31,7 +31,7 @@ export default async function ReturnsPage({
         <h1 className="font-serif text-4xl text-ink">Start a return</h1>
         <hr className="rule-accent mt-6" />
         <p className="mt-6 leading-relaxed text-ink-muted">
-          Thirty days, free returns, and we do not ask you to justify yourself. Enter your order
+          Fourteen days, free returns, and we do not ask you to justify yourself. Enter your order
           number and the email you ordered with - you do not need an account.
         </p>
 

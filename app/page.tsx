@@ -238,7 +238,7 @@ export default async function HomePage() {
             {
               Icon: Globe,
               title: "Shipped worldwide",
-              body: "A flat £10 anywhere in the world, tracked, and free in the UK over £50. Duties shown before you pay.",
+              body: "£5 across the UK and free over £50, with tracked delivery worldwide. Duties shown before you pay.",
             },
             {
               Icon: Sparkles,

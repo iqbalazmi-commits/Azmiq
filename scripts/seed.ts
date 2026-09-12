@@ -176,22 +176,32 @@ async function main() {
     position: 1,
     dutiesNotice: "Import VAT is collected at checkout for orders under EUR 150.",
   }).returning();
+  const [anz] = await db.insert(t.shippingZones).values({
+    name: "Australia and New Zealand",
+    countries: ["AU", "NZ"],
+    position: 2,
+    dutiesNotice: "Shipped duties unpaid. Import duties and local taxes are payable on delivery.",
+  }).returning();
   const [row] = await db.insert(t.shippingZones).values({
     name: "Rest of world",
     countries: ["*"],
-    position: 2,
+    position: 3,
     dutiesNotice: "Shipped duties unpaid. Import duties and local taxes are payable on delivery.",
   }).returning();
 
   await db.insert(t.shippingRates).values([
-    // One promise everywhere: a flat £10 and 7-11 working days, wherever it is
-    // going. Stock ships from a single place, so a next-day option would have
-    // been a promise we could not keep.
-    { zoneId: uk.id, name: "Standard", description: "Tracked", amount: 1000, freeOver: 5000, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
-    { zoneId: eu.id, name: "Europe tracked", description: "DHL, fully tracked", amount: 1000, freeOver: 12000, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
-    { zoneId: row.id, name: "International tracked", description: "DHL Express, fully tracked", amount: 1000, freeOver: null, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
+    // 7-11 working days everywhere: stock ships from a single place, so a
+    // next-day option would have been a promise we could not keep.
+    //
+    // The amount is used AS-IS in whatever currency the customer is shopping
+    // in - it is never converted - so 2000 reads as 20 pounds, 20 euros or
+    // 20 dollars depending on the switcher.
+    { zoneId: uk.id, name: "Standard", description: "Tracked", amount: 500, freeOver: 5000, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
+    { zoneId: eu.id, name: "Europe tracked", description: "DHL, fully tracked", amount: 2000, freeOver: 12000, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
+    { zoneId: anz.id, name: "Tracked", description: "DHL Express, fully tracked", amount: 3000, freeOver: null, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
+    { zoneId: row.id, name: "International tracked", description: "DHL Express, fully tracked", amount: 2000, freeOver: null, minDeliveryDays: 7, maxDeliveryDays: 11, position: 0 },
   ]);
-  console.log("  3 shipping zones, 4 rates");
+  console.log("  4 shipping zones, 4 rates");
 
   /* ----------------------------------------------------------- DISCOUNTS */
   await db.insert(t.discounts).values([
