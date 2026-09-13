@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { minorUnitExponent } from "./money";
+import { SITE } from "./site";
 import type { Order, OrderItem } from "@/db/schema";
 
 /* ===========================================================================
@@ -25,7 +26,11 @@ function major(minor: number, currency: string): number {
 }
 
 export async function recordServerPurchase(order: Order, items: OrderItem[]): Promise<void> {
-  await Promise.allSettled([sendGa4Purchase(order, items), sendKlaviyoPlacedOrder(order, items)]);
+  await Promise.allSettled([
+    sendGa4Purchase(order, items),
+    sendKlaviyoPlacedOrder(order, items),
+    sendMetaPurchase(order, items),
+  ]);
 }
 
 async function sendGa4Purchase(order: Order, items: OrderItem[]): Promise<void> {
@@ -182,5 +187,67 @@ export async function recordCheckoutStarted(
     });
   } catch (error) {
     console.error("[analytics] Klaviyo checkout-started failed", error);
+  }
+}
+
+/* Meta Conversions API.
+
+   Sent from the server for the same reason the GA4 purchase is: a browser
+   pixel is blocked often enough that client-only purchase data understates
+   revenue badly. Meta matches the customer on hashed identifiers - never the
+   raw email - and event_id is the order number so that if a browser Purchase
+   event is ever added later, Meta deduplicates the two instead of counting
+   the sale twice. */
+async function sendMetaPurchase(order: Order, items: OrderItem[]): Promise<void> {
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const token = process.env.META_CAPI_TOKEN;
+  if (!pixelId || !token) return;
+
+  const hash = (value: string) =>
+    createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
+  const address = order.shippingAddress as Record<string, string> | null;
+  const strip = (value?: string) => (value ? value.replace(/\s+/g, "") : "");
+
+  const userData: Record<string, string[]> = { em: [hash(order.email)] };
+  if (address?.city) userData.ct = [hash(strip(address.city))];
+  if (address?.postcode) userData.zp = [hash(strip(address.postcode))];
+  if (address?.country) userData.country = [hash(address.country)];
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${pixelId}/events?access_token=${token}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          data: [
+            {
+              event_name: "Purchase",
+              event_time: Math.floor((order.placedAt ?? new Date()).getTime() / 1000),
+              event_id: "order-" + order.number,
+              action_source: "website",
+              event_source_url: SITE.url + "/checkout/confirmation",
+              user_data: userData,
+              custom_data: {
+                currency: order.currency,
+                value: major(order.grandTotal, order.currency),
+                order_id: String(order.number),
+                content_type: "product",
+                contents: items.map((item) => ({
+                  id: item.sku,
+                  quantity: item.quantity,
+                  item_price: major(item.unitAmount, order.currency),
+                })),
+              },
+            },
+          ],
+        }),
+      },
+    );
+    if (!response.ok) {
+      console.error("[analytics] Meta CAPI rejected", response.status, await response.text());
+    }
+  } catch (error) {
+    console.error("[analytics] Meta CAPI failed", error);
   }
 }

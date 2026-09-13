@@ -9,6 +9,7 @@ import * as t from "@/db/schema";
 import { createAdminSession, getCurrentAdmin, verifyPassword } from "@/lib/auth";
 import { stripe, stripeConfigured } from "@/lib/stripe";
 import { sendOrderConfirmation } from "@/lib/email";
+import { recordServerPurchase } from "@/lib/analytics-server";
 import { parseMoneyInput } from "@/lib/money";
 import { slugify } from "@/lib/utils";
 
@@ -253,7 +254,12 @@ export async function markOrderPaid(_prev: AdminResult, formData: FormData): Pro
   const [fresh] = await db.select().from(t.orders).where(eq(t.orders.id, order.id)).limit(1);
   if (fresh.status === "paid") {
     // A mail outage must not undo a payment we have confirmed by eye.
-    await Promise.allSettled([sendOrderConfirmation(fresh, items)]);
+    // Same reporting the card webhook does, so a bank transfer is not an
+    // invisible sale in GA4, Klaviyo and Meta.
+    await Promise.allSettled([
+      sendOrderConfirmation(fresh, items),
+      recordServerPurchase(fresh, items),
+    ]);
   }
 
   revalidatePath("/admin/orders");

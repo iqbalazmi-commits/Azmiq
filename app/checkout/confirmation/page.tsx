@@ -7,6 +7,7 @@ import * as t from "@/db/schema";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatMoney, type Currency } from "@/lib/money";
 import { bankDetails, transferReference } from "@/lib/bank-transfer";
+import { ConversionTracking } from "@/components/shop/ConversionTracking";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
@@ -85,6 +86,15 @@ export default async function ConfirmationPage({
       }
       icon={settled && !awaitingTransfer ? "check" : "clock"}
     >
+      {/* Only a genuinely paid order counts as a conversion. */}
+      {settled && !awaitingTransfer ? (
+        <ConversionTracking
+          transactionId={String(order.number)}
+          value={order.grandTotal / 100}
+          currency={currency}
+        />
+      ) : null}
+
       <p className="mt-4 text-lg text-ink-muted">
         Order <strong className="text-ink">#{order.number}</strong>.{" "}
         {awaitingTransfer ? (
