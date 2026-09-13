@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { Filters, SortLinks } from "@/components/shop/Filters";
@@ -10,6 +10,7 @@ import {
 } from "@/lib/data";
 import { readCurrency } from "@/lib/cart";
 import { SITE } from "@/lib/site";
+import { resolveRedirect } from "@/lib/redirects";
 
 export const revalidate = 3600;
 
@@ -68,7 +69,14 @@ export default async function CollectionPage({
   const { slug } = await params;
   const search = await searchParams;
   const category = await resolveCategory(slug);
-  if (!category) notFound();
+  if (!category) {
+    // A renamed or retired collection still has to honour its redirect. This
+    // route matches /collections/anything, so the catch-all never sees it and
+    // an old Shopify collection URL would 404 without this.
+    const redirect = await resolveRedirect(`/collections/${slug}`);
+    if (redirect) permanentRedirect(redirect.toPath);
+    notFound();
+  }
 
   const currency = await readCurrency();
   const all = await getCatalogue(currency);
