@@ -49,6 +49,12 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
+  // Search Console asks for this tag to prove the domain is yours. Set
+  // NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION and it appears; leave it blank and
+  // nothing is rendered.
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
   formatDetection: { telephone: false },
 };
 

@@ -9,3 +9,6 @@ next-env.d.ts
 /scripts/.out
 
 .vercel
+
+# Database exports - real customer names, addresses and emails.
+backups

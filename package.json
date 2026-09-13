@@ -15,6 +15,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "tsx scripts/reset-db.ts",
+    "db:backup": "tsx scripts/backup.ts",
     "catalogue:build": "tsx scripts/build-catalogue.ts",
     "admin:reset": "tsx scripts/reset-admin.ts",
     "test:contrast": "tsx scripts/check-contrast.ts",
