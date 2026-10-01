@@ -6,7 +6,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import * as t from "@/db/schema";
-import { createAdminSession, getCurrentAdmin, verifyPassword } from "@/lib/auth";
+import { createHash, timingSafeEqual } from "node:crypto";
+import { createAdminSession, getCurrentAdmin, hashPassword, verifyPassword } from "@/lib/auth";
 import { stripe, stripeConfigured } from "@/lib/stripe";
 import { sendOrderConfirmation } from "@/lib/email";
 import { recordServerPurchase } from "@/lib/analytics-server";
@@ -38,6 +39,24 @@ export async function adminSignIn(_prev: AdminResult, formData: FormData): Promi
   const generic = { ok: false as const, error: "Those details do not match an account." };
   if (!email || !password) return generic;
 
+  // ADMIN_EMAIL / ADMIN_PASSWORD in the hosting environment always work as the
+  // owner login, and bring the stored hash in line with them. Vercel stores
+  // these as "sensitive" values that can never be read back, so changing them
+  // there is the owner's only recovery route if the password is forgotten.
+  if (matchesEnvOwner(email, password)) {
+    const passwordHash = await hashPassword(password);
+    const [owner] = await db
+      .insert(t.adminUsers)
+      .values({ email, name: "AZMIQ Owner", passwordHash, role: "owner", lastLoginAt: new Date() })
+      .onConflictDoUpdate({
+        target: t.adminUsers.email,
+        set: { passwordHash, role: "owner", lastLoginAt: new Date() },
+      })
+      .returning({ id: t.adminUsers.id });
+    await createAdminSession(owner.id);
+    redirect("/admin");
+  }
+
   const [user] = await db.select().from(t.adminUsers).where(eq(t.adminUsers.email, email)).limit(1);
   if (!user) {
     // Hash anyway so a missing account and a wrong password take the same
@@ -51,6 +70,20 @@ export async function adminSignIn(_prev: AdminResult, formData: FormData): Promi
   await db.update(t.adminUsers).set({ lastLoginAt: new Date() }).where(eq(t.adminUsers.id, user.id));
   await createAdminSession(user.id);
   redirect("/admin");
+}
+
+/* Constant-time comparison against the environment credentials. Digesting
+   first gives both sides the same length, which timingSafeEqual requires. The
+   10-character floor matches `npm run admin:reset`, and the seed default is
+   refused outright because it is published in this repository. */
+function matchesEnvOwner(email: string, password: string): boolean {
+  const envEmail = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const envPassword = process.env.ADMIN_PASSWORD ?? "";
+  if (!envEmail || envPassword.length < 10 || envPassword === "change-me-before-launch") return false;
+  const digest = (value: string) => createHash("sha256").update(value).digest();
+  const emailOk = timingSafeEqual(digest(email), digest(envEmail));
+  const passwordOk = timingSafeEqual(digest(password), digest(envPassword));
+  return emailOk && passwordOk;
 }
 
 /* -------------------------------------------------------------- PRODUCTS */
