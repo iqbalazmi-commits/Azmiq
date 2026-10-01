@@ -362,15 +362,16 @@ We post your order as soon as the payment lands. Nothing is charged automaticall
    where it ships, what they bought, and the total. Reply-to is set to the
    customer so you can answer them directly from the alert.
 
-   Destination: ORDER_ALERT_EMAIL, falling back to ADMIN_EMAIL. With neither
-   set (or no RESEND_API_KEY) the alert is logged to the server console.
+   Destination: ORDER_ALERT_EMAIL, falling back to the shop inbox
+   (shop@azmiq.com). With no transport configured the alert is logged to the
+   server console instead.
    --------------------------------------------------------------------------- */
+export function orderAlertEmail(): string {
+  return process.env.ORDER_ALERT_EMAIL || SITE.email;
+}
+
 export async function sendNewOrderAlert(order: Order, items: OrderItem[]): Promise<boolean> {
-  const to = process.env.ORDER_ALERT_EMAIL || process.env.ADMIN_EMAIL;
-  if (!to) {
-    console.log(`[email] new order #${order.number} — no ORDER_ALERT_EMAIL/ADMIN_EMAIL, alert skipped`);
-    return false;
-  }
+  const to = orderAlertEmail();
 
   const currency = order.currency as Currency;
   const a = order.shippingAddress as Record<string, string> | null;
