@@ -35,6 +35,18 @@ export default async function AdminOrdersPage({
         from ${t.orderItems}
         where ${t.orderItems.orderId} = ${t.orders.id}
       )`,
+      // "Copper Bottle (1L) × 2, Tumbler × 1" - so the list says what to pack
+      // without opening every order.
+      products: sql<string | null>`(
+        select string_agg(
+          ${t.orderItems.productTitle}
+            || case when ${t.orderItems.variantTitle} <> '' then ' (' || ${t.orderItems.variantTitle} || ')' else '' end
+            || ' × ' || ${t.orderItems.quantity},
+          ', ' order by ${t.orderItems.productTitle}
+        )
+        from ${t.orderItems}
+        where ${t.orderItems.orderId} = ${t.orders.id}
+      )`,
     })
     .from(t.orders)
     .where(filter === "all" ? undefined : eq(t.orders.status, filter))
@@ -85,13 +97,13 @@ export default async function AdminOrdersPage({
                 <th scope="col" className="py-3 pr-4 font-medium text-ink-muted">Order</th>
                 <th scope="col" className="py-3 pr-4 font-medium text-ink-muted">Placed</th>
                 <th scope="col" className="py-3 pr-4 font-medium text-ink-muted">Customer</th>
-                <th scope="col" className="py-3 pr-4 font-medium text-ink-muted">Items</th>
+                <th scope="col" className="py-3 pr-4 font-medium text-ink-muted">Products</th>
                 <th scope="col" className="py-3 pr-4 font-medium text-ink-muted">Status</th>
                 <th scope="col" className="py-3 text-right font-medium text-ink-muted">Total</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ order, itemCount }) => (
+              {rows.map(({ order, itemCount, products }) => (
                 <tr key={order.id} className="border-b border-border">
                   <td className="py-3 pr-4">
                     <Link
@@ -105,7 +117,12 @@ export default async function AdminOrdersPage({
                     {formatDate(order.placedAt ?? order.createdAt)}
                   </td>
                   <td className="py-3 pr-4 text-ink-muted">{order.email}</td>
-                  <td className="py-3 pr-4 tabular-nums text-ink-muted">{Number(itemCount)}</td>
+                  <td className="py-3 pr-4 text-ink">
+                    {products ?? "—"}
+                    <span className="block text-xs tabular-nums text-ink-muted">
+                      {Number(itemCount)} {Number(itemCount) === 1 ? "item" : "items"}
+                    </span>
+                  </td>
                   <td className="py-3 pr-4">
                     <OrderStatusBadge status={order.status} />
                   </td>
