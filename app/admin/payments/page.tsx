@@ -3,7 +3,7 @@ import { AlertTriangle, Check, CreditCard, ExternalLink, X } from "lucide-react"
 import { requireAdminPage } from "@/lib/admin";
 import { stripe } from "@/lib/stripe";
 import { bankDetails, bankTransferConfigured } from "@/lib/bank-transfer";
-import { emailTransport } from "@/lib/email";
+import { emailTransport, orderAlertEmail } from "@/lib/email";
 import { SITE } from "@/lib/site";
 
 export const metadata = { title: "Payments" };
@@ -50,7 +50,7 @@ export default async function AdminPaymentsPage() {
   const secretKey = process.env.STRIPE_SECRET_KEY ?? "";
   const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
-  const alertEmail = process.env.ORDER_ALERT_EMAIL || process.env.ADMIN_EMAIL || "";
+  const alertEmail = orderAlertEmail();
   const transport = emailTransport();
 
   const account = await checkAccount();
@@ -228,11 +228,11 @@ export default async function AdminPaymentsPage() {
           label="Email sending"
           detail={
             transport === "resend"
-              ? `Resend connected — order alerts go to ${alertEmail || "ADMIN_EMAIL"}`
+              ? `Resend connected — order alerts go to ${alertEmail}`
               : transport === "smtp"
-                ? `Sending as ${process.env.SMTP_USER} via ${process.env.SMTP_HOST} — order alerts go to ${alertEmail || "ADMIN_EMAIL"}`
+                ? `Sending as ${process.env.SMTP_USER} via ${process.env.SMTP_HOST} — order alerts go to ${alertEmail}`
                 : transport === "gmail"
-                  ? `Sending through ${process.env.GMAIL_USER} — order alerts go to ${alertEmail || "ADMIN_EMAIL"}`
+                  ? `Sending through ${process.env.GMAIL_USER} — order alerts go to ${alertEmail}`
                   : "No email is being sent. Use your domain mailbox (SMTP_HOST / SMTP_USER / SMTP_PASSWORD), a Gmail App Password, or a RESEND_API_KEY. Until then the customer receipt and your new-order alert only reach the server log."
           }
         />
