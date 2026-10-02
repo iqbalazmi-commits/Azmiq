@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import * as t from "@/db/schema";
@@ -103,6 +103,7 @@ const productSchema = z.object({
   featured: z.boolean(),
   seoTitle: z.string().max(200).optional(),
   seoDescription: z.string().max(400).optional(),
+  categoryIds: z.array(z.string().min(1)).max(50),
 });
 
 export async function updateProduct(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
@@ -123,8 +124,13 @@ export async function updateProduct(_prev: AdminResult, formData: FormData): Pro
     featured: formData.get("featured") === "on",
     seoTitle: formData.get("seoTitle") ?? "",
     seoDescription: formData.get("seoDescription") ?? "",
+    categoryIds: [...new Set(formData.getAll("categoryIds").map(String))],
   });
   if (!parsed.success) return { ok: false, error: "Please check the highlighted fields." };
+  // A product in no section can only be found through search or "Shop all".
+  if (parsed.data.categoryIds.length === 0) {
+    return { ok: false, error: "Tick at least one section, or the product disappears from the shop menus." };
+  }
 
   const [current] = await db.select().from(t.products).where(eq(t.products.id, parsed.data.id)).limit(1);
   if (!current) return { ok: false, error: "That product no longer exists." };
@@ -166,6 +172,19 @@ export async function updateProduct(_prev: AdminResult, formData: FormData): Pro
       updatedAt: new Date(),
     })
     .where(eq(t.products.id, parsed.data.id));
+
+  // Replace the product's sections with exactly what was ticked. Only ids that
+  // are real categories are kept, so a tampered form cannot insert junk.
+  const productId = parsed.data.id;
+  const valid = await db
+    .select({ id: t.categories.id })
+    .from(t.categories)
+    .where(inArray(t.categories.id, parsed.data.categoryIds));
+  if (valid.length === 0) return { ok: false, error: "Those sections no longer exist. Reload the page." };
+  await db.transaction(async (tx) => {
+    await tx.delete(t.productCategories).where(eq(t.productCategories.productId, productId));
+    await tx.insert(t.productCategories).values(valid.map((c) => ({ productId, categoryId: c.id })));
+  });
 
   revalidatePath("/", "layout");
   return { ok: true, message: "Saved." };

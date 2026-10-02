@@ -16,13 +16,20 @@ export default async function AdminProductPage({ params }: { params: Promise<{ i
   await requireAdminPage();
   const { id } = await params;
 
-  const product = await db.query.products.findFirst({
-    where: eq(t.products.id, id),
-    with: {
-      variants: { orderBy: [asc(t.variants.position)] },
-      images: { orderBy: [asc(t.productImages.position)] },
-    },
-  });
+  const [product, categories] = await Promise.all([
+    db.query.products.findFirst({
+      where: eq(t.products.id, id),
+      with: {
+        variants: { orderBy: [asc(t.variants.position)] },
+        images: { orderBy: [asc(t.productImages.position)] },
+        categories: true,
+      },
+    }),
+    db
+      .select({ id: t.categories.id, title: t.categories.title, slug: t.categories.slug })
+      .from(t.categories)
+      .orderBy(asc(t.categories.position), asc(t.categories.title)),
+  ]);
   if (!product) notFound();
 
   return (
@@ -95,6 +102,7 @@ export default async function AdminProductPage({ params }: { params: Promise<{ i
       <section className="mt-12">
         <h2 className="font-serif text-xl text-ink">Details</h2>
         <ProductEditor
+          categories={categories}
           product={{
             id: product.id,
             title: product.title,
@@ -110,6 +118,7 @@ export default async function AdminProductPage({ params }: { params: Promise<{ i
             featured: product.featured,
             seoTitle: product.seoTitle ?? "",
             seoDescription: product.seoDescription ?? "",
+            categoryIds: product.categories.map((pc) => pc.categoryId),
           }}
         />
       </section>
