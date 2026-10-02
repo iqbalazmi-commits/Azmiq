@@ -24,9 +24,12 @@ type Product = {
   featured: boolean;
   seoTitle: string;
   seoDescription: string;
+  categoryIds: string[];
 };
 
-export function ProductEditor({ product }: { product: Product }) {
+type Category = { id: string; title: string; slug: string };
+
+export function ProductEditor({ product, categories }: { product: Product; categories: Category[] }) {
   const [state, formAction, pending] = useActionState<AdminResult, FormData>(updateProduct, null);
 
   return (
@@ -61,6 +64,31 @@ export function ProductEditor({ product }: { product: Product }) {
 
       <Text name="dimensions" label="Dimensions" defaultValue={product.dimensions}
         help="e.g. 26cm tall x 7.5cm diameter. Shown in the specification table." />
+
+      <fieldset className="rounded-lg border border-border bg-surface-raised p-5">
+        <legend className="px-2 text-sm font-medium text-ink">Sections</legend>
+        <p className="mt-1 px-2 text-sm text-ink-muted">
+          Which shop sections this product appears in. Tick as many as you like — it shows up in
+          each one.
+        </p>
+        <div className="mt-4 grid gap-3 px-2 sm:grid-cols-2">
+          {categories.map((category) => (
+            <label key={category.id} className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                name="categoryIds"
+                value={category.id}
+                defaultChecked={product.categoryIds.includes(category.id)}
+                className="mt-1 h-4 w-4 accent-[var(--color-surface-brand)]"
+              />
+              <span>
+                <span className="font-medium text-ink">{category.title}</span>
+                <span className="block text-ink-muted">/collections/{category.slug}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="rounded-lg border border-border bg-surface-raised p-5">
         <legend className="px-2 text-sm font-medium text-ink">Visibility</legend>
