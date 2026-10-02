@@ -36,7 +36,6 @@ export const FOOTER_LINKS = {
     { title: "Jugs & pitchers", href: "/collections/copper-jugs-pitchers" },
     { title: "Wellness gift sets", href: "/collections/wellness-gift-sets" },
     { title: "Leather jackets", href: "/collections/leather-jackets" },
-    { title: "Copper accessories", href: "/collections/copper-accessories" },
     { title: "Kitchen utensils", href: "/collections/kitchen-utensils" },
   ],
   help: [
