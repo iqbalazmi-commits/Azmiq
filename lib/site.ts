@@ -25,6 +25,7 @@ export const NAV = [
   { title: "Home", href: "/" },
   { title: "Leather", href: "/collections/leather-jackets" },
   { title: "Copperware", href: "/collections/copper-water-bottles" },
+  { title: "Jugs & Pitchers", href: "/collections/copper-jugs-pitchers" },
   { title: "Kitchen", href: "/collections/kitchen-utensils" },
   { title: "Gifts", href: "/collections/wellness-gift-sets" },
 ] as const;
