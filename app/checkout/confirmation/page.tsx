@@ -8,6 +8,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { formatMoney, type Currency } from "@/lib/money";
 import { bankDetails, transferReference } from "@/lib/bank-transfer";
 import { ConversionTracking } from "@/components/shop/ConversionTracking";
+import { CartCountSync } from "@/components/shop/CookieSync";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
@@ -270,6 +271,8 @@ function Shell({
 }) {
   const Icon = icon === "clock" ? Clock : Check;
   return (
+    <>
+      <CartCountSync count={0} />
     <div className="container-page py-20 text-center">
       <div className="mx-auto max-w-xl">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-pill bg-surface-wellness text-ink-on-brand">
@@ -280,5 +283,6 @@ function Shell({
         {children}
       </div>
     </div>
+    </>
   );
 }

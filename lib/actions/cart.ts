@@ -8,7 +8,7 @@ import { db } from "@/db";
 import * as t from "@/db/schema";
 import {
   CART_COOKIE, COUNTRY_COOKIE, CURRENCY_COOKIE, MAX_LINE_QUANTITY,
-  ensureCart, readCartToken, readCurrency,
+  ensureCart, readCartToken, readCurrency, syncCartCountCookie,
 } from "@/lib/cart";
 import { SUPPORTED_CURRENCIES } from "@/lib/money";
 import { COUNTRIES } from "@/lib/currency";
@@ -90,7 +90,10 @@ export async function addToCart(_prev: ActionResult | null, formData: FormData):
   }
   await db.update(t.carts).set({ updatedAt: new Date() }).where(eq(t.carts.id, cart.id));
 
-  revalidatePath("/", "layout");
+  // Only the header's count changes on other pages, and that is read from a
+  // cookie in the browser. Revalidating the whole layout here would throw
+  // away every cached page on the site after each add-to-basket.
+  await syncCartCountCookie(cart.id);
   return { ok: true, message: `${variant.productTitle} added to your basket.` };
 }
 
@@ -111,7 +114,7 @@ export async function updateCartItem(formData: FormData): Promise<void> {
 
   // Scoped by cart token so an item id from someone else's basket does nothing.
   const [item] = await db
-    .select({ id: t.cartItems.id })
+    .select({ id: t.cartItems.id, cartId: t.cartItems.cartId })
     .from(t.cartItems)
     .innerJoin(t.carts, eq(t.cartItems.cartId, t.carts.id))
     .where(and(eq(t.cartItems.id, parsed.data.itemId), eq(t.carts.token, token)))
@@ -123,8 +126,8 @@ export async function updateCartItem(formData: FormData): Promise<void> {
   } else {
     await db.update(t.cartItems).set({ quantity: parsed.data.quantity }).where(eq(t.cartItems.id, item.id));
   }
+  await syncCartCountCookie(item.cartId);
   revalidatePath("/cart");
-  revalidatePath("/", "layout");
 }
 
 export async function removeCartItem(formData: FormData): Promise<void> {
@@ -133,15 +136,17 @@ export async function removeCartItem(formData: FormData): Promise<void> {
   if (!token || !itemId) return;
 
   const [item] = await db
-    .select({ id: t.cartItems.id })
+    .select({ id: t.cartItems.id, cartId: t.cartItems.cartId })
     .from(t.cartItems)
     .innerJoin(t.carts, eq(t.cartItems.cartId, t.carts.id))
     .where(and(eq(t.cartItems.id, itemId), eq(t.carts.token, token)))
     .limit(1);
-  if (item) await db.delete(t.cartItems).where(eq(t.cartItems.id, item.id));
+  if (item) {
+    await db.delete(t.cartItems).where(eq(t.cartItems.id, item.id));
+    await syncCartCountCookie(item.cartId);
+  }
 
   revalidatePath("/cart");
-  revalidatePath("/", "layout");
 }
 
 export async function applyDiscountCode(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
@@ -187,7 +192,9 @@ export async function setCurrency(formData: FormData): Promise<void> {
   const token = jar.get(CART_COOKIE)?.value;
   if (token) await db.update(t.carts).set({ currency: value }).where(eq(t.carts.token, token));
 
-  revalidatePath("/", "layout");
+  // Storefront pages pick the currency up from the cookie in the browser, so
+  // only the server-rendered basket needs refreshing.
+  revalidatePath("/cart");
 }
 
 export async function setCountry(formData: FormData): Promise<void> {
@@ -201,7 +208,7 @@ export async function setCountry(formData: FormData): Promise<void> {
     path: "/",
     maxAge: 60 * 60 * 24 * 180,
   });
-  revalidatePath("/", "layout");
+  revalidatePath("/cart");
   revalidatePath("/checkout");
 }
 

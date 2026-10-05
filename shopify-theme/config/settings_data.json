@@ -1,0 +1,16 @@
+{
+  "current": "Default",
+  "presets": {
+    "Default": {
+      "tagline": "drink well, live well",
+      "color_accent": "#00A8CC",
+      "color_gold": "#A6884C",
+      "type_heading_font": "playfair_display_n4",
+      "type_body_font": "inter_n4",
+      "contact_email": "shop@azmiq.com",
+      "contact_phone": "+44 7741 856782",
+      "social_instagram": "https://www.instagram.com/azmiquk",
+      "social_facebook": "https://www.facebook.com/azmiquk"
+    }
+  }
+}

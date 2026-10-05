@@ -1,0 +1,24 @@
+<div class="container page-head">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="{{ routes.root_url }}">Home</a></li>
+      <li><a href="{{ blog.url }}">{{ blog.title }}</a></li>
+      <li aria-current="page">{{ article.title }}</li>
+    </ol>
+  </nav>
+  <p class="eyebrow" style="margin-top:2.5rem">{{ article.published_at | date: '%-d %B %Y' }}</p>
+  <h1 class="heading-xl" style="margin-top:1rem">{{ article.title }}</h1>
+  <hr class="rule">
+</div>
+<div class="container page-body">
+  {%- if article.image -%}
+    <div class="editorial__media" style="aspect-ratio:16/9;margin-bottom:3rem">
+      {{ article.image | image_url: width: 1800 | image_tag: sizes: '(min-width: 1344px) 1280px, 100vw', widths: '800, 1200, 1800', loading: 'eager' }}
+    </div>
+  {%- endif -%}
+  <div class="prose rte">{{ article.content }}</div>
+</div>
+
+{% schema %}
+{ "name": "Article", "settings": [] }
+{% endschema %}

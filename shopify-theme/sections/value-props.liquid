@@ -1,0 +1,49 @@
+<section class="section--bordered">
+  <div class="container values">
+    {%- for block in section.blocks -%}
+      <div {{ block.shopify_attributes }}>
+        <span class="values__icon">{% render 'icon', name: block.settings.icon, size: 20 %}</span>
+        <h3>{{ block.settings.title }}</h3>
+        <p>{{ block.settings.text }}</p>
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Value points",
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "value",
+      "name": "Point",
+      "settings": [
+        {
+          "type": "select", "id": "icon", "label": "Icon", "default": "globe",
+          "options": [
+            { "value": "globe", "label": "Globe" },
+            { "value": "sparkles", "label": "Sparkles" },
+            { "value": "shield-check", "label": "Shield" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "package-check", "label": "Parcel" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Shipped worldwide" },
+        { "type": "textarea", "id": "text", "label": "Text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Value points",
+      "blocks": [
+        { "type": "value", "settings": { "icon": "globe", "title": "Shipped worldwide", "text": "£5 across the UK and free over £50, with tracked delivery worldwide. Duties shown before you pay." } },
+        { "type": "value", "settings": { "icon": "sparkles", "title": "Made properly", "text": "100% pure copper, full-grain leather, sustainable acacia. No shortcuts." } },
+        { "type": "value", "settings": { "icon": "shield-check", "title": "Secure checkout", "text": "Card, Apple Pay and Google Pay, processed securely by Shopify." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

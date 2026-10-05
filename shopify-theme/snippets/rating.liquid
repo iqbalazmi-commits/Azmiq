@@ -1,0 +1,48 @@
+{%- comment -%}
+  Star rating from Shopify's standard review metafields (reviews.rating,
+  reviews.rating_count), which review apps such as Judge.me fill in.
+  Params: product, size ('sm' | 'md')
+{%- endcomment -%}
+{%- liquid
+  assign rating = product.metafields.reviews.rating.value
+  assign count = product.metafields.reviews.rating_count.value
+  if size == 'sm'
+    assign px = 14
+  else
+    assign px = 17
+  endif
+-%}
+{%- if rating != blank and rating.rating > 0 -%}
+  {%- liquid
+    assign value = rating.rating | times: 1.0
+    assign max = rating.scale_max | default: 5 | times: 1.0
+    assign out_of_five = value | divided_by: max | times: 5
+    assign rounded = out_of_five | round: 1
+  -%}
+  <div class="rating">
+    <span class="rating__stars" aria-hidden="true">
+      {%- for i in (0..4) -%}
+        {%- liquid
+          assign fill = out_of_five | minus: i
+          if fill > 1
+            assign fill = 1
+          elsif fill < 0
+            assign fill = 0
+          endif
+          assign pct = fill | times: 100 | round
+        -%}
+        <svg width="{{ px }}" height="{{ px }}" viewBox="0 0 16 16" focusable="false">
+          <defs>
+            <linearGradient id="star-{{ product.id }}-{{ i }}-{{ px }}">
+              <stop offset="{{ pct }}%" stop-color="var(--surface-wellness)"/>
+              <stop offset="{{ pct }}%" stop-color="transparent" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M8 1.3l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.83 3.88 14l.79-4.6L1.33 6.15l4.61-.67z" fill="url(#star-{{ product.id }}-{{ i }}-{{ px }})" stroke="var(--surface-wellness)" stroke-width="1"/>
+        </svg>
+      {%- endfor -%}
+    </span>
+    <span class="visually-hidden">Rated {{ rounded }} out of 5{% if count %} from {{ count }} reviews{% endif %}</span>
+    <span class="rating__count" aria-hidden="true">{{ rounded }}{% if count %} ({{ count }}){% endif %}</span>
+  </div>
+{%- endif -%}

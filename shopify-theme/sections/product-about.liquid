@@ -1,0 +1,53 @@
+{%- comment -%}
+  "About this piece" + "Specification", on the grey band.
+  Specification rows come from product metafields when they are filled in
+  (custom.material, custom.capacity, custom.dimensions, custom.leak_proof,
+  custom.food_grade, custom.made) and otherwise fall back to the options.
+{%- endcomment -%}
+{%- liquid
+  assign m = product.metafields.custom
+  assign option_values = ''
+  for option in product.options_with_values
+    assign option_values = option.values | join: ', '
+    break
+  endfor
+-%}
+<section class="section section--sunken">
+  <div class="container about">
+    <div class="prose">
+      <h2>{{ section.settings.about_heading }}</h2>
+      <hr class="rule">
+      <div class="rte">{{ product.description }}</div>
+    </div>
+
+    <div>
+      <h2>{{ section.settings.spec_heading }}</h2>
+      <hr class="rule">
+      <dl class="spec">
+        {%- if m.material.value != blank -%}<div><dt>Material</dt><dd>{{ m.material.value }}</dd></div>{%- endif -%}
+        {%- if m.finish.value != blank -%}<div><dt>Finish</dt><dd>{{ m.finish.value }}</dd></div>{%- endif -%}
+        {%- unless product.has_only_default_variant -%}
+          <div><dt>{{ product.options.first }}</dt><dd>{{ option_values }}</dd></div>
+        {%- endunless -%}
+        {%- if m.dimensions.value != blank -%}<div><dt>Dimensions</dt><dd>{{ m.dimensions.value }}</dd></div>{%- endif -%}
+        {%- assign grams = product.selected_or_first_available_variant.weight -%}
+        {%- if grams > 0 -%}<div><dt>Weight</dt><dd>{{ product.selected_or_first_available_variant.weight | weight_with_unit }}</dd></div>{%- endif -%}
+        {%- if m.leak_proof.value != blank -%}<div><dt>Leak-proof</dt><dd>{{ m.leak_proof.value }}</dd></div>{%- endif -%}
+        {%- if m.food_grade.value != blank -%}<div><dt>Food grade</dt><dd>{{ m.food_grade.value }}</dd></div>{%- endif -%}
+        {%- if m.made.value != blank -%}<div><dt>Made</dt><dd>{{ m.made.value }}</dd></div>{%- endif -%}
+        {%- if product.vendor != blank and section.settings.show_vendor -%}<div><dt>Brand</dt><dd>{{ product.vendor }}</dd></div>{%- endif -%}
+      </dl>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Product description",
+  "settings": [
+    { "type": "text", "id": "about_heading", "label": "Description heading", "default": "About this piece" },
+    { "type": "text", "id": "spec_heading", "label": "Specification heading", "default": "Specification" },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show brand row", "default": false }
+  ]
+}
+{% endschema %}

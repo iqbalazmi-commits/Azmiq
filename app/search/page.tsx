@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Search as SearchIcon } from "lucide-react";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { getCatalogue, searchCatalogue } from "@/lib/data";
-import { readCurrency } from "@/lib/cart";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -20,8 +19,7 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q : "";
-  const currency = await readCurrency();
-  const catalogue = await getCatalogue(currency);
+  const catalogue = await getCatalogue();
   const results = query ? searchCatalogue(catalogue, query) : [];
 
   const suggestions = ["hammered", "950ml", "jug", "acacia", "gift set", "copper ball"];

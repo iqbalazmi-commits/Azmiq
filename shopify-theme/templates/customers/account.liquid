@@ -1,0 +1,40 @@
+<div class="container page-head" style="padding-bottom:7rem">
+  <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:1rem">
+    <h1 class="heading-xl" style="margin-top:0">{% if customer.first_name != blank %}Hello, {{ customer.first_name }}{% else %}Your account{% endif %}</h1>
+    <a href="{{ routes.account_logout_url }}" class="link-arrow">Sign out</a>
+  </div>
+  <hr class="rule">
+
+  <div class="about" style="margin-top:3rem">
+    <section>
+      <h2 class="heading-md">Your orders</h2>
+      {%- paginate customer.orders by 20 -%}
+        {%- if customer.orders.size > 0 -%}
+          <table class="table" style="margin-top:1.5rem">
+            <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
+            <tbody>
+              {%- for order in customer.orders -%}
+                <tr>
+                  <td><a href="{{ order.customer_url }}" style="text-decoration:underline">{{ order.name }}</a></td>
+                  <td>{{ order.created_at | date: '%-d %b %Y' }}</td>
+                  <td>{{ order.fulfillment_status_label }}</td>
+                  <td class="tabular">{{ order.total_price | money }}</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+          </table>
+        {%- else -%}
+          <p class="muted" style="margin-top:1rem">You haven't placed any orders yet.</p>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </section>
+    <section>
+      <h2 class="heading-md">Details</h2>
+      <p class="muted" style="margin-top:1rem">{{ customer.email }}</p>
+      {%- if customer.default_address -%}
+        <div class="muted" style="margin-top:1rem">{{ customer.default_address | format_address }}</div>
+      {%- endif -%}
+      <a href="{{ routes.account_addresses_url }}" class="link-arrow" style="margin-top:1rem">Manage addresses ({{ customer.addresses_count }})</a>
+    </section>
+  </div>
+</div>

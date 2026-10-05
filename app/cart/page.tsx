@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { OrderSummary } from "@/components/shop/OrderSummary";
 import { DiscountForm } from "@/components/shop/DiscountForm";
 import { getCart } from "@/lib/cart";
+import { CartCountSync } from "@/components/shop/CookieSync";
 import { removeCartItem, updateCartItem } from "@/lib/actions/cart";
 import { formatMoney } from "@/lib/money";
 import { MAX_LINE_QUANTITY } from "@/lib/cart";
@@ -29,6 +30,7 @@ export default async function CartPage({
   if (cart.lines.length === 0) {
     return (
       <div className="container-page py-28 text-center">
+        <CartCountSync count={0} />
         {notice ? <RestoreBanner {...notice} className="mx-auto mb-10 max-w-lg text-left" /> : null}
         <h1 className="font-serif text-4xl text-ink">Your basket is empty</h1>
         <p className="mx-auto mt-4 max-w-md text-ink-muted">
@@ -48,6 +50,7 @@ export default async function CartPage({
 
   return (
     <div className="container-page py-12">
+      <CartCountSync count={cart.lines.reduce((n, l) => n + l.quantity, 0)} />
       {notice ? <RestoreBanner {...notice} className="mb-8" /> : null}
       <h1 className="font-serif text-4xl text-ink">Your basket</h1>
       <hr className="rule-accent mt-6" />

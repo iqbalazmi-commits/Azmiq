@@ -1,15 +1,11 @@
-import { getCartCount } from "@/lib/cart";
-import { getCurrentCustomer } from "@/lib/auth";
 import { HeaderShell } from "./HeaderShell";
 import { CurrencySwitcher } from "./CurrencySwitcher";
 
-export async function Header() {
-  const [count, customer] = await Promise.all([getCartCount(), getCurrentCustomer()]);
-  return (
-    <HeaderShell
-      cartCount={count}
-      signedIn={!!customer}
-      currencySwitcher={<CurrencySwitcher />}
-    />
-  );
+/* The header is in the root layout, so anything it reads per request makes
+   every page on the site render per request. It reads nothing on the server:
+   basket count, account state and currency all come from cookies in the
+   browser (lib/browser-state.ts). */
+
+export function Header() {
+  return <HeaderShell currencySwitcher={<CurrencySwitcher />} />;
 }

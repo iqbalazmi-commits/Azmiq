@@ -1,0 +1,48 @@
+<div class="container narrow">
+  <h1>Sign in</h1>
+  <hr class="rule">
+
+  <div id="LoginForm">
+    {%- form 'customer_login', novalidate: 'novalidate' -%}
+      {%- if form.errors -%}<p class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
+      <div class="field">
+        <label for="CustomerEmail">Email</label>
+        <input class="input" type="email" name="customer[email]" id="CustomerEmail" autocomplete="email" required>
+      </div>
+      {%- if form.password_needed -%}
+        <div class="field">
+          <label for="CustomerPassword">Password</label>
+          <input class="input" type="password" name="customer[password]" id="CustomerPassword" autocomplete="current-password" required>
+        </div>
+      {%- endif -%}
+      <button class="button button--lg button--full" type="submit">Sign in</button>
+    {%- endform -%}
+    <div class="alt-links">
+      <a href="#RecoverPassword">Forgotten your password?</a>
+      <a href="{{ routes.account_register_url }}">Create an account</a>
+    </div>
+  </div>
+
+  <div id="RecoverPassword" style="margin-top:4rem">
+    <h2 class="heading-md" style="text-align:center">Reset your password</h2>
+    {%- form 'recover_customer_password' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="form-message form-message--success" role="status">We've emailed you a link to reset your password.</p>
+      {%- endif -%}
+      {%- if form.errors -%}<p class="form-message form-message--error">{{ form.errors | default_errors }}</p>{%- endif -%}
+      <div class="field">
+        <label for="RecoverEmail">Email</label>
+        <input class="input" type="email" name="email" id="RecoverEmail" autocomplete="email" required>
+      </div>
+      <button class="button button--secondary" type="submit">Send reset link</button>
+    {%- endform -%}
+  </div>
+
+  {%- if shop.checkout.guest_login -%}
+    <div style="margin-top:4rem;text-align:center">
+      {%- form 'guest_login' -%}
+        <button class="button button--secondary" type="submit">Continue as a guest</button>
+      {%- endform -%}
+    </div>
+  {%- endif -%}
+</div>

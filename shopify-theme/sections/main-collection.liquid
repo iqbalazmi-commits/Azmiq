@@ -1,0 +1,171 @@
+{%- comment -%}
+  Collection page, as on azmiq.com: breadcrumbs, serif title, strapline and
+  description, a filter column on the left and SORT links above the grid.
+  Filters use Shopify's Search & Discovery filtering and work without JS.
+{%- endcomment -%}
+{%- liquid
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+  assign filter_query = ''
+  for filter in collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value
+        assign filter_query = filter_query | append: '&' | append: filter.min_value.param_name | append: '=' | append: filter.min_value.value
+      endif
+      if filter.max_value.value
+        assign filter_query = filter_query | append: '&' | append: filter.max_value.param_name | append: '=' | append: filter.max_value.value
+      endif
+    else
+      for v in filter.active_values
+        assign encoded = v.value | url_encode
+        assign filter_query = filter_query | append: '&' | append: v.param_name | append: '=' | append: encoded
+      endfor
+    endif
+  endfor
+  assign subtitle = collection.metafields.custom.subtitle.value
+  assign active_count = 0
+  for filter in collection.filters
+    assign active_count = active_count | plus: filter.active_values.size
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign active_count = active_count | plus: 1
+      endif
+    endif
+  endfor
+-%}
+
+<div class="container page-head" style="padding-bottom:7rem">
+  {% render 'breadcrumbs', current: collection.title %}
+
+  <header class="collection-head">
+    <h1 class="heading-xl">{{ collection.title }}</h1>
+    {%- if subtitle != blank -%}<p class="lead">{{ subtitle }}</p>{%- endif -%}
+    {%- if collection.description != blank -%}<div class="rte">{{ collection.description }}</div>{%- endif -%}
+    <hr class="rule">
+  </header>
+
+  {%- paginate collection.products by section.settings.per_page -%}
+    {%- liquid
+      assign has_filters = false
+      if section.settings.show_filters and collection.filters.size > 0
+        assign has_filters = true
+      endif
+    -%}
+    <div class="collection-layout{% unless has_filters %} collection-layout--full{% endunless %}">
+      {%- if has_filters -%}
+        <aside class="filters" aria-label="Filters">
+          <form action="{{ collection.url }}" method="get" data-filters>
+            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+            <p class="eyebrow" style="margin-bottom:1rem">Filter</p>
+            {%- for filter in collection.filters -%}
+              <details{% if filter.active_values.size > 0 or forloop.index <= 2 %} open{% endif %}>
+                <summary>{{ filter.label }}</summary>
+                {%- case filter.type -%}
+                  {%- when 'price_range' -%}
+                    <div class="filters__price">
+                      <label class="visually-hidden" for="PriceMin">From</label>
+                      <input class="input" id="PriceMin" type="number" inputmode="decimal" placeholder="£ from"
+                        name="{{ filter.min_value.param_name }}" min="0"
+                        {% if filter.min_value.value %}value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"{% endif %}>
+                      <span aria-hidden="true">–</span>
+                      <label class="visually-hidden" for="PriceMax">To</label>
+                      <input class="input" id="PriceMax" type="number" inputmode="decimal" placeholder="£ to"
+                        name="{{ filter.max_value.param_name }}" min="0"
+                        {% if filter.max_value.value %}value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"{% endif %}>
+                    </div>
+                  {%- else -%}
+                    <ul>
+                      {%- for value in filter.values -%}
+                        <li>
+                          <label>
+                            <input type="checkbox" name="{{ value.param_name }}" value="{{ value.value }}"
+                              {% if value.active %}checked{% endif %}
+                              {% if value.count == 0 and value.active == false %}disabled{% endif %}>
+                            {{ value.label }}
+                            <span class="count">{{ value.count }}</span>
+                          </label>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                {%- endcase -%}
+              </details>
+            {%- endfor -%}
+            <div class="filters__actions">
+              <button type="submit" class="button button--sm" data-apply>Apply</button>
+              {%- if active_count > 0 -%}<a href="{{ collection.url }}?sort_by={{ sort_by }}">Clear all</a>{%- endif -%}
+            </div>
+          </form>
+        </aside>
+      {%- endif -%}
+
+      <div>
+        <div class="toolbar">
+          <nav class="sort" aria-label="Sort">
+            <p class="eyebrow sort__label">Sort</p>
+            {%- for option in collection.sort_options -%}
+              {%- if section.settings.sort_choices contains option.value -%}
+                <a href="{{ collection.url }}?sort_by={{ option.value }}{{ filter_query }}"{% if option.value == sort_by %} aria-current="true"{% endif %}>{{ option.name }}</a>
+              {%- endif -%}
+            {%- endfor -%}
+          </nav>
+          <p class="small muted">{{ collection.products_count }} {{ collection.products_count | pluralize: 'piece', 'pieces' }}</p>
+        </div>
+
+        {%- if active_count > 0 -%}
+          <div class="active-filters" style="margin-top:1.25rem">
+            {%- for filter in collection.filters -%}
+              {%- for value in filter.active_values -%}
+                <a href="{{ value.url_to_remove }}">{{ value.label }} <span aria-hidden="true">&times;</span><span class="visually-hidden">Remove filter</span></a>
+              {%- endfor -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if collection.products.size == 0 -%}
+          <div class="empty">
+            <p>Nothing matches those filters</p>
+            <p>Try widening the price range, or clear the filters to see the whole collection.</p>
+          </div>
+        {%- else -%}
+          <div class="collection-results product-grid product-grid--3">
+            {%- for product in collection.products -%}
+              {%- liquid
+                assign eager = false
+                if forloop.index <= 3
+                  assign eager = true
+                endif
+              -%}
+              {% render 'product-card', product: product, eager: eager, sizes: '(min-width: 1280px) 26vw, (min-width: 1024px) 38vw, 45vw' %}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="pagination" aria-label="Pagination">
+            {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}" aria-label="Previous page">&larr;</a>{%- endif -%}
+            {%- for part in paginate.parts -%}
+              {%- if part.is_link -%}<a href="{{ part.url }}">{{ part.title }}</a>
+              {%- elsif part.title == paginate.current_page -%}<span class="current" aria-current="page">{{ part.title }}</span>
+              {%- else -%}<span>{{ part.title }}</span>{%- endif -%}
+            {%- endfor -%}
+            {%- if paginate.next -%}<a href="{{ paginate.next.url }}" aria-label="Next page">&rarr;</a>{%- endif -%}
+          </nav>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endpaginate -%}
+</div>
+
+{% schema %}
+{
+  "name": "Collection",
+  "settings": [
+    { "type": "range", "id": "per_page", "label": "Products per page", "min": 12, "max": 48, "step": 6, "default": 24 },
+    { "type": "checkbox", "id": "show_filters", "label": "Show filters", "info": "Choose filters in the Shopify Search & Discovery app.", "default": true },
+    {
+      "type": "text", "id": "sort_choices", "label": "Sort options to show",
+      "info": "Comma-separated: manual, best-selling, title-ascending, price-ascending, price-descending, created-descending",
+      "default": "manual, price-ascending, price-descending, best-selling"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,16 @@
+{%- comment -%}
+  The AZMIQ logo tile with a hairline gold ring. Uses the logo uploaded in
+  Theme settings, falling back to the logo shipped with the theme.
+  Params: size (px, default 46), tagline (boolean)
+{%- endcomment -%}
+{%- assign px = size | default: 46 -%}
+<span class="logo">
+  {%- if settings.logo != blank -%}
+    {{ settings.logo | image_url: width: 200 | image_tag: width: px, height: px, alt: shop.name, loading: 'eager', style: 'object-fit:cover' }}
+  {%- else -%}
+    <img src="{{ 'azmiq-logo.png' | asset_url }}" width="{{ px }}" height="{{ px }}" alt="{{ shop.name | escape }}" loading="eager">
+  {%- endif -%}
+  {%- if tagline and settings.tagline != blank -%}
+    <span class="logo__tagline">{{ settings.tagline }}</span>
+  {%- endif -%}
+</span>
