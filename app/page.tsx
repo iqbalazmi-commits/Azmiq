@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { HeroCarousel, type HeroSlide } from "@/components/shop/HeroCarousel";
 import { getCatalogue } from "@/lib/data";
+import { readCurrency } from "@/lib/cart";
 import { SITE } from "@/lib/site";
 import type { CatalogueProduct } from "@/lib/data";
 
@@ -51,9 +52,8 @@ function tileImage(products: CatalogueProduct[], slug: string) {
 }
 
 export default async function HomePage() {
-  // Rendered once in GBP and cached; prices switch to the visitor's currency
-  // in the browser. Reading cookies here would make this page run per visit.
-  const products = await getCatalogue();
+  const currency = await readCurrency();
+  const products = await getCatalogue(currency);
   const featured = products.filter((p) => p.featured).slice(0, 8);
   const carousel = featured.length >= 4 ? featured : products.slice(0, 8);
   const slides = heroSlides(products);

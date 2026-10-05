@@ -1,16 +1,18 @@
 import { SUPPORTED_CURRENCIES } from "@/lib/money";
+import { readCurrency } from "@/lib/cart";
 import { setCurrency } from "@/lib/actions/cart";
 import { CurrencySelect } from "./CurrencySelect";
 
-/* The selected currency is read in the browser (CurrencySelect), not here, so
-   the header stays static. Prices on static pages switch instantly from the
-   hand-set figures shipped with the page; the Server Action only keeps an
-   existing basket in step. */
+/* Rendered on the server so the correct currency is in the HTML on first
+   paint - a switcher that hydrates into the right value a second later shows
+   the customer a price flicker, which is exactly the wrong first impression
+   on a store that sells in five currencies. */
 
-export function CurrencySwitcher() {
+export async function CurrencySwitcher() {
+  const current = await readCurrency();
   return (
     <form action={setCurrency} className="hidden sm:block">
-      <CurrencySelect options={[...SUPPORTED_CURRENCIES]} />
+      <CurrencySelect current={current} options={[...SUPPORTED_CURRENCIES]} />
       {/* Visible on focus: the no-JS and keyboard path still works. */}
       <button type="submit" className="sr-only-focusable rounded-md bg-surface px-3 py-2 text-sm text-ink">
         Change currency

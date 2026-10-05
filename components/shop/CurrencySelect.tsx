@@ -1,10 +1,9 @@
 "use client";
 
-import { useDisplayCurrency, writeCookie } from "@/lib/browser-state";
-import { CURRENCY_COOKIE } from "@/lib/cookie-names";
+import { useRef } from "react";
 
-export function CurrencySelect({ options }: { options: string[] }) {
-  const current = useDisplayCurrency();
+export function CurrencySelect({ current, options }: { current: string; options: string[] }) {
+  const ref = useRef<HTMLSelectElement>(null);
 
   return (
     <>
@@ -13,14 +12,10 @@ export function CurrencySelect({ options }: { options: string[] }) {
       </label>
       <select
         id="currency-select"
+        ref={ref}
         name="currency"
-        value={current}
-        onChange={(event) => {
-          // Switch prices on this page immediately, then let the Server Action
-          // update the basket.
-          writeCookie(CURRENCY_COOKIE, event.currentTarget.value);
-          event.currentTarget.form?.requestSubmit();
-        }}
+        defaultValue={current}
+        onChange={(event) => event.currentTarget.form?.requestSubmit()}
         className="h-11 cursor-pointer rounded-md border border-white/25 bg-transparent px-2 text-sm text-ink-on-brand hover:border-white/60"
       >
         {options.map((code) => (

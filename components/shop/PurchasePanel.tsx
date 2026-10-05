@@ -7,8 +7,7 @@ import { Price } from "@/components/ui/Price";
 import { Button } from "@/components/ui/Button";
 import { addToCart, type ActionResult } from "@/lib/actions/cart";
 import { toMajorUnits, track, trackKlaviyo } from "@/lib/analytics";
-import type { CatalogueProduct } from "@/lib/catalogue";
-import { notifyCookieChange, useLocalPrice } from "@/lib/browser-state";
+import type { CatalogueProduct } from "@/lib/data";
 
 /* The interactive half of the product page. Variant choice changes the price,
    the stock line and the SKU that gets posted - everything else on the page is
@@ -24,22 +23,20 @@ export function PurchasePanel({ product }: { product: CatalogueProduct }) {
 
   const variant = product.variants.find((v) => v.id === variantId) ?? firstAvailable;
   const multiple = product.variants.length > 1;
-  // The page is static and rendered in GBP; show the visitor's own currency.
-  const price = useLocalPrice(variant?.price ?? { amount: 0, compareAt: null, currency: "GBP" });
 
   // view_item fires once per product, after consent has been checked inside
   // track(). Firing it per variant change would inflate the funnel.
   useEffect(() => {
     if (!variant) return;
     track("view_item", {
-      currency: price.currency,
-      value: toMajorUnits(price.amount),
+      currency: variant.price.currency,
+      value: toMajorUnits(variant.price.amount),
       items: [{
         item_id: variant.sku,
         item_name: product.title,
         item_variant: variant.title,
         item_category: product.categorySlugs[0],
-        price: toMajorUnits(price.amount),
+        price: toMajorUnits(variant.price.amount),
         quantity: 1,
       }],
     });
@@ -48,24 +45,22 @@ export function PurchasePanel({ product }: { product: CatalogueProduct }) {
       ProductID: product.id,
       SKU: variant.sku,
       Categories: product.categorySlugs,
-      Price: toMajorUnits(price.amount),
+      Price: toMajorUnits(variant.price.amount),
       URL: typeof window !== "undefined" ? window.location.href : undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);
 
   useEffect(() => {
-    // The action set a new basket-count cookie; let the header re-read it.
-    if (state?.ok) notifyCookieChange();
     if (state?.ok && variant) {
       track("add_to_cart", {
-        currency: price.currency,
-        value: toMajorUnits(price.amount),
+        currency: variant.price.currency,
+        value: toMajorUnits(variant.price.amount),
         items: [{
           item_id: variant.sku,
           item_name: product.title,
           item_variant: variant.title,
-          price: toMajorUnits(price.amount),
+          price: toMajorUnits(variant.price.amount),
           quantity: 1,
         }],
       });
@@ -79,9 +74,9 @@ export function PurchasePanel({ product }: { product: CatalogueProduct }) {
   return (
     <div>
       <Price
-        amount={price.amount}
-        compareAt={price.compareAt}
-        currency={price.currency}
+        amount={variant.price.amount}
+        compareAt={variant.price.compareAt}
+        currency={variant.price.currency}
         capacityMl={variant.capacityMl ?? product.capacityMl}
         size="lg"
         showUnitPrice

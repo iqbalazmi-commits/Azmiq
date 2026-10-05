@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import * as t from "@/db/schema";
-import { getCart, syncCartCountCookie } from "@/lib/cart";
+import { getCart } from "@/lib/cart";
 import { getCurrentCustomer } from "@/lib/auth";
 import { shippingRateById } from "@/lib/shipping";
 import { stripe, stripeConfigured, stripeCurrency } from "@/lib/stripe";
@@ -177,7 +177,6 @@ export async function POST(request: Request) {
       if (row) {
         await db.delete(t.cartItems).where(eq(t.cartItems.cartId, row.id));
         await db.update(t.carts).set({ discountCode: null }).where(eq(t.carts.id, row.id));
-        await syncCartCountCookie(row.id);
       }
     }
 

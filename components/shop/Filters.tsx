@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { X } from "lucide-react";
-import type { Facets, SortKey } from "@/lib/catalogue";
+import type { Facets, SortKey } from "@/lib/data";
 
 /* ===========================================================================
    FILTERS
