@@ -115,7 +115,8 @@
         "heading": "Genuine leather,\nthe same standard",
         "text": "<p>Genuine leather outerwear in clean, modern cuts — a café-racer jacket for men, and belted double-breasted trenches for women in black and deep burgundy. Full-grain hide, a soft full lining, a tailored fit. Five sizes, S to XXL.</p>",
         "button_label": "Shop leather jackets",
-        "button_link": "shopify://collections/leather-jackets"
+        "button_link": "shopify://collections/leather-jackets",
+        "product": "mens-leather-jacket"
       }
     },
     "values": {
