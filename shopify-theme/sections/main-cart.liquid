@@ -1,0 +1,89 @@
+<div class="container cart">
+  {%- if cart.item_count == 0 -%}
+    <div class="cart-empty">
+      <h1>Your basket is empty</h1>
+      <p>Nothing in here yet. The collection is small and every piece is made properly — have a look.</p>
+      <a href="{{ routes.all_products_collection_url }}" class="button button--lg">Shop the collection</a>
+    </div>
+  {%- else -%}
+    <h1>Your basket</h1>
+    <hr class="rule">
+
+    <form action="{{ routes.cart_url }}" method="post" id="CartForm" data-cart-form>
+      <div class="cart__layout">
+        <div>
+          <ul>
+            {%- for item in cart.items -%}
+              <li class="cart-line">
+                <a href="{{ item.url }}" class="cart-line__media" tabindex="-1" aria-hidden="true">
+                  {%- if item.image -%}{{ item.image | image_url: width: 300 | image_tag: loading: 'lazy', alt: '' }}{%- endif -%}
+                </a>
+                <div>
+                  <a href="{{ item.url }}" class="cart-line__title">{{ item.product.title }}</a>
+                  {%- unless item.product.has_only_default_variant -%}
+                    <p class="cart-line__variant">{{ item.variant.title }}</p>
+                  {%- endunless -%}
+                  {%- for p in item.properties -%}
+                    {%- unless p.last == blank or p.first contains '_' -%}
+                      <p class="cart-line__variant">{{ p.first }}: {{ p.last }}</p>
+                    {%- endunless -%}
+                  {%- endfor -%}
+                  {%- for d in item.line_level_discount_allocations -%}
+                    <p class="cart-line__variant">{{ d.discount_application.title }} (−{{ d.amount | money }})</p>
+                  {%- endfor -%}
+                  <div class="cart-line__controls">
+                    <div class="qty" data-qty>
+                      <button type="button" data-step="down" aria-label="Decrease quantity">&minus;</button>
+                      <label class="visually-hidden" for="Qty-{{ item.key }}">Quantity</label>
+                      <input id="Qty-{{ item.key }}" type="number" name="updates[]" value="{{ item.quantity }}" min="0" inputmode="numeric" data-line-qty>
+                      <button type="button" data-step="up" aria-label="Increase quantity">+</button>
+                    </div>
+                    <a href="{{ item.url_to_remove }}" class="cart-line__remove">Remove</a>
+                  </div>
+                </div>
+                <div class="cart-line__price">
+                  {{ item.final_line_price | money }}
+                  {%- if item.original_line_price > item.final_line_price -%}<s>{{ item.original_line_price | money }}</s>{%- endif -%}
+                </div>
+              </li>
+            {%- endfor -%}
+          </ul>
+
+          {%- if section.settings.show_note -%}
+            <div class="field cart__note">
+              <label for="CartNote">Order note</label>
+              <textarea class="textarea" id="CartNote" name="note" placeholder="A gift message, or anything we should know">{{ cart.note }}</textarea>
+            </div>
+          {%- endif -%}
+          <noscript><button type="submit" class="button button--secondary" style="margin-top:1rem">Update basket</button></noscript>
+        </div>
+
+        <aside class="summary">
+          <h2>Order summary</h2>
+          <div class="summary__rows">
+            {%- for d in cart.cart_level_discount_applications -%}
+              <div class="summary__row"><span>{{ d.title }}</span><span>−{{ d.total_allocated_amount | money }}</span></div>
+            {%- endfor -%}
+            <div class="summary__row"><span class="muted">Delivery</span><span class="muted">Calculated at checkout</span></div>
+            <div class="summary__row summary__total"><span>Total</span><span class="tabular">{{ cart.total_price | money_with_currency }}</span></div>
+          </div>
+          <button type="submit" name="checkout" class="button button--lg button--full">Checkout securely</button>
+          {%- if additional_checkout_buttons and section.settings.show_express -%}
+            <div style="margin-top:.75rem">{{ content_for_additional_checkout_buttons }}</div>
+          {%- endif -%}
+          <p class="summary__note">Taxes included where applicable. Discount codes are entered at checkout.</p>
+        </aside>
+      </div>
+    </form>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Basket",
+  "settings": [
+    { "type": "checkbox", "id": "show_note", "label": "Allow an order note", "default": true },
+    { "type": "checkbox", "id": "show_express", "label": "Show Apple Pay / PayPal buttons", "default": true }
+  ]
+}
+{% endschema %}

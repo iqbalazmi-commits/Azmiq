@@ -1,0 +1,81 @@
+{%- comment -%}
+  The rotating hero: full-bleed photography cross-fading behind a frosted
+  white card. Add an image per slide block; with none, the hero uses product
+  photos from the chosen collection so it is never empty.
+{%- endcomment -%}
+{%- liquid
+  assign slide_count = 0
+  for block in section.blocks
+    if block.settings.image != blank
+      assign slide_count = slide_count | plus: 1
+    endif
+  endfor
+-%}
+<section class="hero" data-hero data-interval="{{ section.settings.interval }}">
+  <div class="hero__slides">
+    {%- if slide_count > 0 -%}
+      {%- assign n = 0 -%}
+      {%- for block in section.blocks -%}
+        {%- if block.settings.image != blank -%}
+          <div class="hero__slide{% if n == 0 %} is-active{% endif %}" {{ block.shopify_attributes }}>
+            {%- if n == 0 -%}{%- assign loading = 'eager' -%}{%- assign priority = 'high' -%}{%- else -%}{%- assign loading = 'lazy' -%}{%- assign priority = 'auto' -%}{%- endif -%}
+            {{ block.settings.image | image_url: width: 2400 | image_tag: sizes: '100vw', widths: '750, 1100, 1500, 1800, 2400', loading: loading, fetchpriority: priority, alt: block.settings.image.alt }}
+          </div>
+          {%- assign n = n | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- elsif section.settings.fallback_collection != blank -%}
+      {%- for product in section.settings.fallback_collection.products limit: 5 -%}
+        {%- if product.featured_media -%}
+          <div class="hero__slide{% if forloop.first %} is-active{% endif %}">
+            {{ product.featured_media | image_url: width: 2400 | image_tag: sizes: '100vw', widths: '750, 1100, 1500, 1800, 2400', loading: 'eager', alt: '' }}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+
+  <div class="container hero__content">
+    <div class="hero__card">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <hr class="rule">
+      <h1 class="hero__title">{{ section.settings.heading | newline_to_br }}</h1>
+      {%- if section.settings.text != blank -%}<p class="hero__text">{{ section.settings.text }}</p>{%- endif -%}
+      <div class="hero__actions">
+        {%- if section.settings.button_label != blank -%}
+          <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="button button--lg">{{ section.settings.button_label }}</a>
+        {%- endif -%}
+        {%- if section.settings.link_label != blank -%}
+          <a href="{{ section.settings.link_url }}" class="link-arrow link-arrow--ink">{{ section.settings.link_label }}{% render 'icon', name: 'arrow-right', size: 15 %}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "class": "section-hero",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Modern luxury · Artisanal craft" },
+    { "type": "textarea", "id": "heading", "label": "Heading", "default": "Considered goods,\nmade to last." },
+    { "type": "textarea", "id": "text", "label": "Text", "default": "Leather, pure copper drinkware and home essentials — a small, curated collection, priced openly and shipped worldwide." },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop the collection" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "text", "id": "link_label", "label": "Secondary link label", "default": "New: the leather line" },
+    { "type": "url", "id": "link_url", "label": "Secondary link" },
+    { "type": "range", "id": "interval", "label": "Seconds per slide", "min": 3, "max": 12, "step": 1, "default": 6 },
+    { "type": "collection", "id": "fallback_collection", "label": "Use photos from this collection when no slides are added" }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [{ "type": "image_picker", "id": "image", "label": "Image" }]
+    }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

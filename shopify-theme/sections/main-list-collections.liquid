@@ -1,0 +1,25 @@
+<div class="container page-head" style="padding-bottom:7rem">
+  {% render 'breadcrumbs', current: 'Collections' %}
+  <h1 class="heading-xl">{{ section.settings.heading }}</h1>
+  <hr class="rule">
+  <div class="collection-list">
+    {%- for c in collections -%}
+      {%- assign img = c.image | default: c.products.first.featured_media -%}
+      <a href="{{ c.url }}" class="bento__tile">
+        {%- if img -%}{{ img | image_url: width: 1000 | image_tag: sizes: '(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw', widths: '400, 700, 1000', loading: 'lazy', alt: '' }}{%- endif -%}
+        <div class="bento__body">
+          <span class="bento__hairline" aria-hidden="true"></span>
+          <p class="bento__blurb">{{ c.products_count }} {{ c.products_count | pluralize: 'piece', 'pieces' }}</p>
+          <h2 class="bento__title">{{ c.title }}{% render 'icon', name: 'arrow-right', size: 18 %}</h2>
+        </div>
+      </a>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collections list",
+  "settings": [{ "type": "text", "id": "heading", "label": "Heading", "default": "Everything we make" }]
+}
+{% endschema %}

@@ -1,0 +1,12 @@
+<div class="container page-head">
+  {% render 'breadcrumbs', current: page.title %}
+  <h1 class="heading-xl">{{ page.title }}</h1>
+  <hr class="rule">
+</div>
+<div class="container page-body">
+  <div class="prose rte">{{ page.content }}</div>
+</div>
+
+{% schema %}
+{ "name": "Page", "settings": [] }
+{% endschema %}

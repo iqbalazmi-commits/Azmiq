@@ -1,0 +1,165 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "eyebrow": "Modern luxury · Artisanal craft",
+        "heading": "Considered goods,\nmade to last.",
+        "text": "Leather, pure copper drinkware and home essentials — a small, curated collection, priced openly and shipped worldwide.",
+        "button_label": "Shop the collection",
+        "button_link": "shopify://collections/all",
+        "link_label": "New: the leather line",
+        "link_url": "shopify://collections/leather-jackets",
+        "interval": 6,
+        "fallback_collection": "all"
+      }
+    },
+    "trust": {
+      "type": "trust-bar",
+      "blocks": {
+        "t1": {
+          "type": "item",
+          "settings": {
+            "icon": "package-check",
+            "text": "Tracked worldwide shipping"
+          }
+        },
+        "t2": {
+          "type": "item",
+          "settings": {
+            "icon": "rotate-ccw",
+            "text": "14-day returns"
+          }
+        },
+        "t3": {
+          "type": "item",
+          "settings": {
+            "icon": "shield-check",
+            "text": "Free UK delivery over £50"
+          }
+        }
+      },
+      "block_order": [
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "settings": {}
+    },
+    "categories": {
+      "type": "category-bento",
+      "blocks": {
+        "c1": {
+          "type": "tile",
+          "settings": {
+            "collection": "leather-jackets",
+            "label": "Leather",
+            "blurb": "Jackets and a leather trench"
+          }
+        },
+        "c2": {
+          "type": "tile",
+          "settings": {
+            "collection": "copper-water-bottles",
+            "label": "Copperware",
+            "blurb": "Pure copper, hand-hammered"
+          }
+        },
+        "c3": {
+          "type": "tile",
+          "settings": {
+            "collection": "kitchen-utensils",
+            "label": "Kitchen",
+            "blurb": "Sustainable acacia wood"
+          }
+        },
+        "c4": {
+          "type": "tile",
+          "settings": {
+            "collection": "wellness-gift-sets",
+            "label": "Gifts",
+            "blurb": "Matched sets, ready to give"
+          }
+        }
+      },
+      "block_order": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ],
+      "settings": {
+        "eyebrow": "Browse",
+        "heading": "Shop by category",
+        "link_label": "View all",
+        "link_url": "shopify://collections/all"
+      }
+    },
+    "featured": {
+      "type": "featured-products",
+      "settings": {
+        "eyebrow": "The edit",
+        "heading": "Featured this season",
+        "collection": "all",
+        "limit": 8,
+        "more_label": "Shop everything",
+        "sunken": true
+      }
+    },
+    "editorial": {
+      "type": "editorial-split",
+      "settings": {
+        "eyebrow": "New — the leather line",
+        "heading": "Genuine leather,\nthe same standard",
+        "text": "<p>Genuine leather outerwear in clean, modern cuts — a café-racer jacket for men, and belted double-breasted trenches for women in black and deep burgundy. Full-grain hide, a soft full lining, a tailored fit. Five sizes, S to XXL.</p>",
+        "button_label": "Shop leather jackets",
+        "button_link": "shopify://collections/leather-jackets"
+      }
+    },
+    "values": {
+      "type": "value-props",
+      "blocks": {
+        "v1": {
+          "type": "value",
+          "settings": {
+            "icon": "globe",
+            "title": "Shipped worldwide",
+            "text": "£5 across the UK and free over £50, with tracked delivery worldwide. Duties shown before you pay."
+          }
+        },
+        "v2": {
+          "type": "value",
+          "settings": {
+            "icon": "sparkles",
+            "title": "Made properly",
+            "text": "100% pure copper, full-grain leather, sustainable acacia. No shortcuts."
+          }
+        },
+        "v3": {
+          "type": "value",
+          "settings": {
+            "icon": "shield-check",
+            "title": "Secure checkout",
+            "text": "Card, Apple Pay and Google Pay, processed securely by Shopify."
+          }
+        }
+      },
+      "block_order": [
+        "v1",
+        "v2",
+        "v3"
+      ],
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "trust",
+    "categories",
+    "featured",
+    "editorial",
+    "values"
+  ]
+}

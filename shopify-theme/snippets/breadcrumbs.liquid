@@ -1,0 +1,10 @@
+{%- comment -%} Params: current (string), collection_link (optional collection) {%- endcomment -%}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="{{ routes.root_url }}">Home</a></li>
+    {%- if collection_link -%}
+      <li><a href="{{ collection_link.url }}">{{ collection_link.title }}</a></li>
+    {%- endif -%}
+    <li aria-current="page">{{ current }}</li>
+  </ol>
+</nav>

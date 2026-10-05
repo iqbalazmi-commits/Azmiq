@@ -1,0 +1,29 @@
+{%- comment -%}
+  The dark "Why copper" band. Shows only when the product has the
+  custom.wellness_story metafield (multi-line text or rich text).
+{%- endcomment -%}
+{%- assign story = product.metafields.custom.wellness_story -%}
+{%- if story.value != blank -%}
+  <section class="section section--inverse story">
+    <div class="container">
+      <div class="prose">
+        <p class="eyebrow eyebrow--on-dark">{{ section.settings.eyebrow }}</p>
+        <h2>{{ section.settings.heading }}</h2>
+        <hr class="rule">
+        <div class="rte">
+          {%- if story.type == 'rich_text_field' -%}{{ story | metafield_tag }}{%- else -%}{{ story.value | newline_to_br }}{%- endif -%}
+        </div>
+      </div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product story",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Ayurvedic wellness" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Why copper" }
+  ]
+}
+{% endschema %}
