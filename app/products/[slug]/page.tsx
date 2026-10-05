@@ -12,8 +12,6 @@ import { Rating } from "@/components/ui/Rating";
 import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
 import { getCatalogue, getProductBySlug, getPublishedReviews, relatedProducts } from "@/lib/data";
 import { resolveRedirect } from "@/lib/redirects";
-import { readCurrency } from "@/lib/cart";
-import { getCurrentCustomer } from "@/lib/auth";
 import { SITE } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -46,8 +44,9 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function ProductPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const currency = await readCurrency();
-  const product = await getProductBySlug(slug, currency);
+  // No cookies are read on this page, so it is rendered once and served from
+  // cache. Prices are switched to the visitor's currency in the browser.
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     // A renamed product lands here first, so an old link is redirected rather
@@ -57,10 +56,9 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
     notFound();
   }
 
-  const [reviews, all, customer] = await Promise.all([
+  const [reviews, all] = await Promise.all([
     getPublishedReviews(product.id),
-    getCatalogue(currency),
-    getCurrentCustomer(),
+    getCatalogue(),
   ]);
   const related = relatedProducts(all, product);
 
@@ -247,8 +245,8 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <ReviewForm
               productId={product.id}
               productSlug={product.slug}
-              defaultName={customer?.firstName ?? ""}
-              defaultEmail={customer?.email ?? ""}
+              defaultName=""
+              defaultEmail=""
             />
           </div>
 

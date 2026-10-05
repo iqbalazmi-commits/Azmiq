@@ -1,6 +1,7 @@
 import { createHash, randomBytes, scrypt, timingSafeEqual, type ScryptOptions } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
+import { SIGNED_IN_COOKIE } from "./cookie-names";
 import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import { db } from "@/db";
 import * as t from "@/db/schema";
@@ -73,6 +74,11 @@ export async function createCustomerSession(customerId: string) {
   const [session] = await db.insert(t.sessions).values({ customerId, expiresAt }).returning();
   const jar = await cookies();
   jar.set(CUSTOMER_SESSION_COOKIE, session.id, cookieOptions(CUSTOMER_SESSION_DAYS * 86400));
+  // Display hint for the static header; not httpOnly, carries no identity.
+  jar.set(SIGNED_IN_COOKIE, "1", {
+    ...cookieOptions(CUSTOMER_SESSION_DAYS * 86400),
+    httpOnly: false,
+  });
   return session;
 }
 
@@ -118,6 +124,7 @@ export async function destroySession(which: "customer" | "admin") {
   const id = jar.get(name)?.value;
   if (id) await db.delete(t.sessions).where(eq(t.sessions.id, id));
   jar.delete(name);
+  if (which === "customer") jar.delete(SIGNED_IN_COOKIE);
 }
 
 /* ------------------------------------------------------------ MAGIC LINK */
