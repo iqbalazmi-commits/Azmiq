@@ -27,12 +27,20 @@ Checked with Shopify Theme Check: 0 errors, 0 warnings.
 | `footer-about`| Footer "About" column | Our story, Contact, Fair pricing                                      |
 | `footer`      | Footer "Legal" column | Privacy, Terms, Cookies (Shopify's policy pages)                      |
 
+### Products
+
+`shopify-products.csv` is the catalogue in Shopify's import format (16
+products, prices, sale prices, sizes, stock, descriptions, SEO and photos).
+Import it at **Products → Import**. Regenerate it with
+`npx tsx scripts/export-shopify-csv.ts`.
+
 ### Collections
 
-The homepage is pre-wired to these collection handles; create them (or pick
-different ones in the theme editor):
+The homepage is pre-wired to these collection handles. Each imported product
+is tagged with them, so create each as an **automated collection** with the
+condition *Product tag is equal to* the handle:
 `leather-jackets`, `copper-water-bottles`, `copper-jugs-pitchers`,
-`kitchen-utensils`, `wellness-gift-sets`.
+`kitchen-utensils`, `wellness-gift-sets` (and `copper-accessories` if wanted).
 
 ### Filters
 
