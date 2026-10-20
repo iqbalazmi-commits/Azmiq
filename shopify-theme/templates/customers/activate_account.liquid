@@ -1,0 +1,10 @@
+<div class="container narrow">
+  <h1>Activate your account</h1>
+  <hr class="rule">
+  {%- form 'activate_customer_password' -%}
+    {%- if form.errors -%}<p class="form-message form-message--error">{{ form.errors | default_errors }}</p>{%- endif -%}
+    <div class="field"><label for="ActivatePassword">Password</label><input class="input" type="password" name="customer[password]" id="ActivatePassword" autocomplete="new-password" required></div>
+    <div class="field"><label for="ActivateConfirm">Confirm password</label><input class="input" type="password" name="customer[password_confirmation]" id="ActivateConfirm" autocomplete="new-password" required></div>
+    <button class="button button--lg button--full" type="submit">Activate account</button>
+  {%- endform -%}
+</div>

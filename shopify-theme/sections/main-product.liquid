@@ -1,0 +1,221 @@
+{%- comment -%}
+  The buy box, laid out as on azmiq.com: gallery left; eyebrow, serif title,
+  strapline, rating, gold rule, summary, price, options, add to basket and a
+  reassurance list right.
+
+  Optional product metafields (Settings → Custom data → Products):
+    custom.subtitle      single line text   strapline under the title
+    custom.summary       multi-line text    one-sentence summary (else the
+                                            first 200 characters of the
+                                            description are used)
+    custom.finish        single line text   eyebrow above the title
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign first_collection = product.collections.first
+  assign finish = product.metafields.custom.finish.value | default: product.type
+  assign subtitle = product.metafields.custom.subtitle.value
+  assign summary = product.metafields.custom.summary.value
+  if summary == blank
+    assign summary = product.description | strip_html | truncate: 200
+  endif
+  assign on_sale = false
+  if current_variant.compare_at_price > current_variant.price
+    assign on_sale = true
+  endif
+  assign is_apparel = false
+  for c in product.collections
+    if c.handle contains 'leather'
+      assign is_apparel = true
+    endif
+  endfor
+-%}
+
+<div class="container page-head" style="padding-top:3.5rem">
+  {% render 'breadcrumbs', collection_link: first_collection, current: product.title %}
+</div>
+
+<div class="container product" data-product data-money-format="{{ shop.money_format | escape }}">
+  <script type="application/json" data-product-json>
+    {
+      "variants": [
+        {%- for v in product.variants -%}
+          {
+            "id": {{ v.id }},
+            "options": {{ v.options | json }},
+            "available": {{ v.available | json }},
+            "price": {{ v.price }},
+            "compare_at_price": {{ v.compare_at_price | default: 0 }},
+            "featured_media": {% if v.featured_media %}{ "id": {{ v.featured_media.id }} }{% else %}null{% endif %}
+          }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+
+  {%- comment -%} -------------------------------- gallery {%- endcomment -%}
+  <div class="gallery" data-gallery>
+    {%- assign start_media = current_variant.featured_media | default: product.featured_media -%}
+    <div class="gallery__main">
+      {%- for media in product.media -%}
+        {%- if media.media_type == 'image' or media.preview_image -%}
+          {%- liquid
+            if media.id == start_media.id
+              assign cls = 'is-active'
+              assign loading = 'eager'
+            else
+              assign cls = ''
+              assign loading = 'lazy'
+            endif
+          -%}
+          {{ media.preview_image | image_url: width: 1600 | image_tag: class: cls, data-media-id: media.id, sizes: '(min-width: 1024px) 46vw, 92vw', widths: '600, 900, 1200, 1600', loading: loading, alt: media.alt | default: product.title }}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+    {%- if product.media.size > 1 -%}
+      <div class="gallery__thumbs" role="list">
+        {%- for media in product.media -%}
+          <button type="button" class="gallery__thumb" role="listitem" aria-label="Show image {{ forloop.index }}" aria-current="{% if media.id == start_media.id %}true{% else %}false{% endif %}">
+            {{ media.preview_image | image_url: width: 160 | image_tag: loading: 'lazy', alt: '' }}
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} ---------------------------------- info {%- endcomment -%}
+  <div class="product__info">
+    {%- if finish != blank -%}<p class="eyebrow">{{ finish }}</p>{%- endif -%}
+    <h1 class="product__title">{{ product.title }}</h1>
+    {%- if subtitle != blank -%}<p class="product__subtitle">{{ subtitle }}</p>{%- endif -%}
+    {%- if product.metafields.reviews.rating.value != blank -%}
+      <a href="#reviews">{% render 'rating', product: product %}</a>
+    {%- endif -%}
+
+    <hr class="rule">
+
+    {%- if summary != blank -%}<p class="product__summary">{{ summary }}</p>{%- endif -%}
+
+    <div class="buy">
+      <div class="price">
+        <div class="price__row">
+          <span class="price__now" data-price-now>{{ current_variant.price | money }}</span>
+          <s class="price__was" data-price-was{% unless on_sale %} hidden{% endunless %}>
+            <span class="visually-hidden">Previous price </span><span data-amount>{{ current_variant.compare_at_price | money }}</span>
+          </s>
+          {%- liquid
+            assign save_pct = 0
+            if on_sale
+              assign ratio = current_variant.price | times: 1.0 | divided_by: current_variant.compare_at_price
+              assign save_pct = 1 | minus: ratio | times: 100 | floor
+            endif
+          -%}
+          <span class="price__save" data-price-save data-template="Save [percent]%"{% unless on_sale %} hidden{% endunless %}>Save {{ save_pct }}%</span>
+        </div>
+        {%- if current_variant.unit_price_measurement -%}
+          <p class="price__unit">{{ current_variant.unit_price | money }} / {{ current_variant.unit_price_measurement.reference_unit }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- form 'product', product, data-product-form: '', novalidate: 'novalidate' -%}
+        <input type="hidden" name="id" value="{{ current_variant.id }}">
+
+        {%- unless product.has_only_default_variant -%}
+          {%- for option in product.options_with_values -%}
+            <fieldset class="option">
+              <legend>{{ option.name }}: <span data-selected>{{ option.selected_value }}</span></legend>
+              <div class="option__values">
+                {%- for value in option.values -%}
+                  {%- assign input_id = 'Option-' | append: section.id | append: '-' | append: forloop.parentloop.index0 | append: '-' | append: forloop.index0 -%}
+                  <input type="radio" id="{{ input_id }}" name="options[{{ option.name | escape }}]" value="{{ value | escape }}"{% if option.selected_value == value %} checked{% endif %}>
+                  <label for="{{ input_id }}">{{ value }}</label>
+                {%- endfor -%}
+              </div>
+            </fieldset>
+          {%- endfor -%}
+        {%- endunless -%}
+
+        <div class="buy__qty">
+          <div class="qty" data-qty>
+            <button type="button" data-step="down" aria-label="Decrease quantity">&minus;</button>
+            <label class="visually-hidden" for="Quantity-{{ section.id }}">Quantity</label>
+            <input id="Quantity-{{ section.id }}" type="number" name="quantity" value="1" min="1" inputmode="numeric">
+            <button type="button" data-step="up" aria-label="Increase quantity">+</button>
+          </div>
+          <button type="submit" name="add" class="button button--lg" data-add
+            data-add-label="Add to basket" data-soldout="Sold out" data-unavailable="Unavailable"
+            {% unless current_variant.available %}disabled{% endunless %}>
+            {%- if current_variant.available -%}Add to basket{%- else -%}Sold out{%- endif -%}
+          </button>
+        </div>
+
+        {%- if section.settings.show_dynamic_checkout -%}
+          <div class="buy__dynamic">{{ form | payment_button }}</div>
+        {%- endif -%}
+
+        <p class="buy__stock {% if current_variant.available %}buy__stock--in{% else %}buy__stock--out{% endif %}" data-stock data-in="In stock, ready to ship" data-out="Sold out">
+          {%- if current_variant.available -%}In stock, ready to ship{%- else -%}Sold out{%- endif -%}
+        </p>
+        <p class="buy__message" role="status" aria-live="polite" data-message data-added="[title] added to your basket." data-view="View basket"></p>
+      {%- endform -%}
+
+      {%- for block in section.blocks -%}
+        {%- if block.type == '@app' -%}{% render block %}{%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <ul class="reassurance">
+      {%- if is_apparel -%}
+        <li>{% render 'icon', name: 'truck', size: 17 %}{{ section.settings.r1 }}</li>
+        <li>{% render 'icon', name: 'rotate-ccw', size: 17 %}{{ section.settings.r2 }}</li>
+        <li>{% render 'icon', name: 'package-check', size: 17 %}Genuine leather</li>
+        <li>{% render 'icon', name: 'leaf', size: 17 %}Ships in a protective bag</li>
+      {%- else -%}
+        <li>{% render 'icon', name: 'truck', size: 17 %}{{ section.settings.r1 }}</li>
+        <li>{% render 'icon', name: 'rotate-ccw', size: 17 %}{{ section.settings.r2 }}</li>
+        <li>{% render 'icon', name: 'package-check', size: 17 %}{{ section.settings.r3 }}</li>
+        <li>{% render 'icon', name: 'leaf', size: 17 %}{{ section.settings.r4 }}</li>
+      {%- endif -%}
+    </ul>
+  </div>
+</div>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": {{ product.title | json }},
+    "url": {{ request.origin | append: product.url | json }},
+    {%- if product.featured_media -%}"image": [{{ product.featured_media | image_url: width: 1200 | prepend: 'https:' | json }}],{%- endif -%}
+    "description": {{ product.description | strip_html | json }},
+    {%- if current_variant.sku != blank -%}"sku": {{ current_variant.sku | json }},{%- endif -%}
+    "brand": { "@type": "Brand", "name": {{ product.vendor | json }} },
+    "offers": [
+      {%- for variant in product.variants -%}
+        {
+          "@type": "Offer",
+          {%- if variant.sku != blank -%}"sku": {{ variant.sku | json }},{%- endif -%}
+          "availability": "http://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
+          "price": {{ variant.price | divided_by: 100.00 | json }},
+          "priceCurrency": {{ cart.currency.iso_code | json }},
+          "url": {{ request.origin | append: variant.url | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Product",
+  "settings": [
+    { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Show Apple Pay / Shop Pay buttons", "default": true },
+    { "type": "header", "content": "Reassurance list" },
+    { "type": "text", "id": "r1", "label": "Line 1", "default": "£5 UK delivery, free over £50" },
+    { "type": "text", "id": "r2", "label": "Line 2", "default": "14-day returns, free" },
+    { "type": "text", "id": "r3", "label": "Line 3 (non-leather)", "default": "Leak-proof, bag-tested" },
+    { "type": "text", "id": "r4", "label": "Line 4 (non-leather)", "default": "Plastic-free packaging" }
+  ],
+  "blocks": [{ "type": "@app" }]
+}
+{% endschema %}

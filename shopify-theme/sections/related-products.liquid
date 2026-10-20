@@ -1,0 +1,39 @@
+{%- comment -%}
+  "You might also like" — same collection first, then anything else, so the
+  rail is never empty. Rendered server-side; no app or fetch needed.
+{%- endcomment -%}
+{%- liquid
+  assign source = product.collections.first | default: collections.all
+  assign shown = 0
+-%}
+<section class="container section">
+  <h2 class="heading-md">{{ section.settings.heading }}</h2>
+  <div class="product-grid product-grid--4" style="margin-top:2.5rem">
+    {%- for item in source.products limit: 12 -%}
+      {%- if item.id != product.id and shown < section.settings.limit -%}
+        {% render 'product-card', product: item %}
+        {%- assign shown = shown | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if shown < section.settings.limit and source != collections.all -%}
+      {%- for item in collections.all.products limit: 12 -%}
+        {%- assign in_source = false -%}
+        {%- for c in item.collections -%}{%- if c.id == source.id -%}{%- assign in_source = true -%}{%- endif -%}{%- endfor -%}
+        {%- if item.id != product.id and in_source == false and shown < section.settings.limit -%}
+          {% render 'product-card', product: item %}
+          {%- assign shown = shown | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Related products",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "You might also like" },
+    { "type": "range", "id": "limit", "label": "Products", "min": 2, "max": 8, "step": 1, "default": 4 }
+  ]
+}
+{% endschema %}

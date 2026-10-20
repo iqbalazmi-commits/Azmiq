@@ -1,0 +1,100 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "AZMIQ",
+    "theme_version": "1.0.0",
+    "theme_author": "AZMIQ",
+    "theme_documentation_url": "https://azmiq.com",
+    "theme_support_url": "https://azmiq.com"
+  },
+  {
+    "name": "Logo & brand",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo",
+        "info": "Square works best. Leave empty to use the AZMIQ logo built into the theme."
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Browser tab icon"
+      },
+      {
+        "type": "text",
+        "id": "tagline",
+        "label": "Tagline (footer)",
+        "default": "drink well, live well"
+      }
+    ]
+  },
+  {
+    "name": "Colours",
+    "settings": [
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Button colour",
+        "default": "#00A8CC"
+      },
+      {
+        "type": "color",
+        "id": "color_gold",
+        "label": "Gold detail colour",
+        "default": "#A6884C"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "font_picker",
+        "id": "type_heading_font",
+        "label": "Headings",
+        "default": "playfair_display_n4"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
+        "label": "Body",
+        "default": "inter_n4"
+      }
+    ]
+  },
+  {
+    "name": "Contact & social",
+    "settings": [
+      {
+        "type": "text",
+        "id": "contact_email",
+        "label": "Email",
+        "default": "shop@azmiq.com"
+      },
+      {
+        "type": "text",
+        "id": "contact_phone",
+        "label": "Phone",
+        "default": "+44 7741 856782"
+      },
+      {
+        "type": "url",
+        "id": "social_instagram",
+        "label": "Instagram",
+        "default": "https://www.instagram.com/azmiquk"
+      },
+      {
+        "type": "url",
+        "id": "social_facebook",
+        "label": "Facebook",
+        "default": "https://www.facebook.com/azmiquk"
+      },
+      {
+        "type": "url",
+        "id": "social_tiktok",
+        "label": "TikTok"
+      }
+    ]
+  }
+]

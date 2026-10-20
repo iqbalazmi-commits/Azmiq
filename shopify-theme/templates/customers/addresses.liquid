@@ -1,0 +1,35 @@
+<div class="container page-head" style="padding-bottom:7rem">
+  <a href="{{ routes.account_url }}" class="link-arrow">&larr; Your account</a>
+  <h1 class="heading-xl">Addresses</h1>
+  <hr class="rule">
+
+  {%- paginate customer.addresses by 10 -%}
+    <ul style="margin-top:2.5rem;display:grid;gap:2rem">
+      {%- for address in customer.addresses -%}
+        <li class="summary">
+          {%- if address == customer.default_address -%}<p class="eyebrow">Default</p>{%- endif -%}
+          <div class="muted" style="margin-top:.5rem">{{ address | format_address }}</div>
+          <details style="margin-top:1rem">
+            <summary class="link-arrow" style="cursor:pointer">Edit</summary>
+            {%- form 'customer_address', address -%}
+              {% render 'address-fields', form: form, prefix: address.id %}
+              <button class="button" type="submit" style="margin-top:1rem">Save</button>
+            {%- endform -%}
+          </details>
+          <form method="post" action="{{ routes.account_addresses_url }}/{{ address.id }}" style="margin-top:.75rem">
+            <input type="hidden" name="_method" value="delete">
+            <button type="submit" class="cart-line__remove" style="border:0;background:none;padding:0">Delete</button>
+          </form>
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- endpaginate -%}
+
+  <details style="margin-top:3rem">
+    <summary class="button button--secondary">Add a new address</summary>
+    {%- form 'customer_address', customer.new_address -%}
+      {% render 'address-fields', form: form, prefix: 'new' %}
+      <button class="button" type="submit" style="margin-top:1rem">Add address</button>
+    {%- endform -%}
+  </details>
+</div>

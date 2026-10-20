@@ -1,0 +1,22 @@
+{
+  "type": "header",
+  "name": "Header group",
+  "sections": {
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "settings": {
+        "text": "£5 UK delivery, free over £50  ·  Worldwide shipping  ·  14-day returns",
+        "link": ""
+      }
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu",
+        "logo_size": 46,
+        "show_currency": true
+      }
+    }
+  },
+  "order": ["announcement-bar", "header"]
+}

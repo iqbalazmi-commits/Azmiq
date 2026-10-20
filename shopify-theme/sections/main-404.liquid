@@ -1,0 +1,13 @@
+<div class="container cart-empty">
+  <p class="eyebrow">Page not found</p>
+  <h1 class="heading-xl" style="margin-top:1rem">This page has moved or no longer exists</h1>
+  <p>Try the collection, or search for what you were looking for.</p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2rem">
+    <a href="{{ routes.all_products_collection_url }}" class="button">Shop everything</a>
+    <a href="{{ routes.search_url }}" class="button button--secondary">Search</a>
+  </div>
+</div>
+
+{% schema %}
+{ "name": "404", "settings": [] }
+{% endschema %}

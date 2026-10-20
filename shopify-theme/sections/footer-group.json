@@ -1,0 +1,23 @@
+{
+  "type": "footer",
+  "name": "Footer group",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "shop": { "type": "links", "settings": { "heading": "Shop", "menu": "footer-shop" } },
+        "help": { "type": "links", "settings": { "heading": "Help", "menu": "footer-help" } },
+        "about": { "type": "links", "settings": { "heading": "About", "menu": "footer-about" } },
+        "legal": { "type": "links", "settings": { "heading": "Legal", "menu": "footer" } }
+      },
+      "block_order": ["shop", "help", "about", "legal"],
+      "settings": {
+        "show_newsletter": true,
+        "newsletter_heading": "Slow letters, not spam",
+        "legal_line": "Registered in England & Wales.",
+        "show_payment_icons": true
+      }
+    }
+  },
+  "order": ["footer"]
+}

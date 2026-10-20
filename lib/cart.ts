@@ -6,9 +6,8 @@ import { BASE_CURRENCY, type Currency } from "./money";
 import { computeTotals, type PricingResult } from "./pricing";
 import { resolveCurrency } from "./currency";
 
-export const CART_COOKIE = "azmiq_cart";
-export const CURRENCY_COOKIE = "azmiq_currency";
-export const COUNTRY_COOKIE = "azmiq_country";
+import { CART_COOKIE, CART_COUNT_COOKIE, COUNTRY_COOKIE, CURRENCY_COOKIE } from "./cookie-names";
+export { CART_COOKIE, CART_COUNT_COOKIE, COUNTRY_COOKIE, CURRENCY_COOKIE };
 
 const CART_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 /** A cap that stops a scripted client inflating a line to 10,000 units and
@@ -231,6 +230,24 @@ export async function getCart(options?: { shippingRateId?: string | null }): Pro
 }
 
 /** Cheap count for the header badge - avoids building the whole cart view. */
+/** Write the browser-readable basket count. Call after any change to a cart,
+    from a Server Action or Route Handler (cookies cannot be set during render). */
+export async function syncCartCountCookie(cartId: string): Promise<number> {
+  const [row] = await db
+    .select({ total: sql<number>`coalesce(sum(${t.cartItems.quantity}), 0)` })
+    .from(t.cartItems)
+    .where(eq(t.cartItems.cartId, cartId));
+  const count = Number(row?.total ?? 0);
+  const jar = await cookies();
+  jar.set(CART_COUNT_COOKIE, String(count), {
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: CART_MAX_AGE,
+  });
+  return count;
+}
+
 export async function getCartCount(): Promise<number> {
   const token = await readCartToken();
   if (!token) return 0;

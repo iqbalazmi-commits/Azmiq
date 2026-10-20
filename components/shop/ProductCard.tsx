@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Media } from "@/components/ui/Media";
 import { Rating } from "@/components/ui/Rating";
-import { formatMoney, isOnSale } from "@/lib/money";
-import type { CatalogueProduct } from "@/lib/data";
+import { isOnSale } from "@/lib/money";
+import type { CatalogueProduct } from "@/lib/catalogue";
+import { CardPrice } from "./CardPrice";
 
 /* An editorial product tile. The image carries the card: no border, no drop
    shadow, no sale flag shouting over the photograph. Title in the serif, price
@@ -88,16 +89,7 @@ export function ProductCard({
           <p className="mt-2 text-sm leading-relaxed text-ink-muted">{product.subtitle}</p>
         ) : null}
 
-        <p className="mt-3.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 pt-1 text-sm tabular-nums">
-          {multiple ? <span className="text-ink-muted">From</span> : null}
-          <span className="text-ink">{formatMoney(product.from.amount, product.from.currency)}</span>
-          {onSale && product.from.compareAt ? (
-            <s className="text-ink-muted/80 decoration-1">
-              <span className="sr-only">Previous price </span>
-              {formatMoney(product.from.compareAt, product.from.currency)}
-            </s>
-          ) : null}
-        </p>
+        <CardPrice price={product.from} multiple={multiple} />
       </div>
     </article>
   );

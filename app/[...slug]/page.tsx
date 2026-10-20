@@ -18,8 +18,22 @@ export default async function CatchAllPage({
   const { slug } = await params;
   const path = "/" + slug.join("/");
 
+  // Vulnerability scanners probe every site for /wp-login.php, /.env,
+  // /cgi-bin and the like, and each lookup would wake the database. Real
+  // legacy URLs (/products/x, /pages/x) never look like that, so these go
+  // straight to the 404 without a query.
+  if (isProbe(slug)) notFound();
+
   const redirect = await resolveRedirect(path);
   if (redirect) permanentRedirect(redirect.toPath);
 
   notFound();
+}
+
+function isProbe(segments: string[]): boolean {
+  const last = decodeURIComponent(segments[segments.length - 1] ?? "");
+  return (
+    segments.some((s) => s.startsWith(".") || /^(wp-|cgi-bin$|phpmyadmin)/i.test(s)) ||
+    /\.[a-z0-9]{1,5}$/i.test(last)
+  );
 }

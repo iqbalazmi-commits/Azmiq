@@ -1,0 +1,25 @@
+{% layout none %}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your {{ shop.name }} gift card</title>
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    <style>:root { --font-heading-family: Georgia, serif; --font-body-family: system-ui, sans-serif; }</style>
+    {{ content_for_header }}
+  </head>
+  <body>
+    <main class="container narrow" style="text-align:center">
+      <img src="{{ 'azmiq-logo.png' | asset_url }}" width="64" height="64" alt="{{ shop.name | escape }}" style="margin:0 auto;border-radius:8px">
+      <h1 style="margin-top:2rem">Your gift card</h1>
+      <hr class="rule">
+      <p style="margin-top:1.5rem;font-size:2.5rem" class="tabular">{{ gift_card.balance | money }}</p>
+      {%- if gift_card.expired or gift_card.enabled == false -%}<p class="form-message form-message--error">This gift card is no longer valid.</p>{%- endif -%}
+      <p class="muted" style="margin-top:1.5rem">Use this code at checkout</p>
+      <p style="margin-top:.5rem;font-size:1.25rem;letter-spacing:.1em" class="tabular">{{ gift_card.code | format_code }}</p>
+      {%- if gift_card.pass_url -%}<p style="margin-top:1.5rem"><a href="{{ gift_card.pass_url }}" class="link-arrow">Add to Apple Wallet</a></p>{%- endif -%}
+      <a href="{{ shop.url }}" class="button button--lg" style="margin-top:2.5rem">Start shopping</a>
+    </main>
+  </body>
+</html>

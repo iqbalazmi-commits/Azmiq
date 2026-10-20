@@ -10,6 +10,7 @@ import { signOut } from "@/lib/actions/auth";
 import { formatMoney, type Currency } from "@/lib/money";
 import { formatDate } from "@/lib/utils";
 import { OrderStatusBadge } from "@/components/shop/OrderStatusBadge";
+import { SignedInSync } from "@/components/shop/CookieSync";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -28,6 +29,8 @@ export default async function AccountPage() {
   const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
 
   return (
+    <>
+      <SignedInSync signedIn />
     <div className="container-page py-12 pb-24">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="font-serif text-4xl text-ink">{name ? `Hello, ${name}` : "Your account"}</h1>
@@ -107,5 +110,6 @@ export default async function AccountPage() {
         )}
       </section>
     </div>
+    </>
   );
 }
