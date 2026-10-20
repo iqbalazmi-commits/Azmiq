@@ -13,11 +13,8 @@ import { CATALOGUE } from "./catalogue";
 const IMAGE_BASE = "https://raw.githubusercontent.com/iqbalazmi-commits/Azmiq/main/public";
 const OUT = path.join(__dirname, "..", "shopify-theme", "shopify-products.csv");
 
-// Collections each product should appear in on Shopify. The copper balls were
-// added to Copperware in the admin after the catalogue was seeded.
-const EXTRA_TAGS: Record<string, string[]> = {
-  "azmiq-pure-copper-balls-handmade-with-cotton-pouch": ["copper-water-bottles"],
-};
+// Extra Shopify tags beyond each product's catalogue categories.
+const EXTRA_TAGS: Record<string, string[]> = {};
 
 const HEADERS = [
   "Handle", "Title", "Body (HTML)", "Vendor", "Type", "Tags", "Published",

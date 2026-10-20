@@ -5,8 +5,9 @@ import * as t from "../db/schema";
 import { hashPassword } from "../lib/auth";
 import { CATALOGUE, CATEGORIES, PRESENTMENT_MULTIPLIERS, presentmentPrice } from "./catalogue";
 
-/* Seeds a complete, browsable store: catalogue, imagery, reviews, shipping
-   zones, discounts and a staff login. Re-runnable - it clears the tables it
+/* Seeds a complete, browsable store: catalogue, imagery, shipping zones,
+   discounts and a staff login (plus sample reviews on the local PGlite
+   database only - never on a real one). Re-runnable - it clears the tables it
    owns first. */
 
 const REVIEWERS = [
@@ -136,6 +137,11 @@ async function main() {
         })),
       ),
     );
+
+    // Sample reviews are for the local demo database only. On a real database
+    // they would be invented testimonials shown to customers as genuine, which
+    // misleads shoppers and is unlawful under UK consumer law (DMCC Act 2024).
+    if (process.env.DATABASE_URL) continue;
 
     // Reviews: deterministic per product so the seed is reproducible.
     const howMany = 3 + ((index * 7) % 8);

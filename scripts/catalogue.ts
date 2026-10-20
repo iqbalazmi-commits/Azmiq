@@ -112,7 +112,7 @@ export const CATALOGUE: SeedProduct[] = [
     weightGrams: null,
     dimensions: null,
     leakProof: false,
-    categories: ["copper-accessories"],
+    categories: ["copper-accessories", "copper-water-bottles"],
     position: 0,
     images: [
       { file: "/images/products/azmiq-pure-copper-balls-handmade-with-cotton-pouch/00-ball_1.png", alt: "AZMIQ Pure Copper Balls – Handmade with Cotton Pouch, photographed on warm linen", kind: "hero", width: 417, height: 514 },
