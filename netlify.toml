@@ -6,7 +6,7 @@
 # database (scripts/seed-if-empty.ts), so a deploy never overwrites the shop.
 
 [build]
-  command = "npm run build:netlify"
+  command = "npm run build:deploy"
   publish = ".next"
 
 [build.environment]
