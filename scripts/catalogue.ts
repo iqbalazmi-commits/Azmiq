@@ -513,7 +513,6 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/mens-leather-jacket/01-flat.jpg", alt: "The jacket laid flat, showing the cut, collar and zip hardware", kind: "gallery", width: 1600, height: 1192 },
       { file: "/images/products/mens-leather-jacket/02-brand.png", alt: "AZMIQ leather — crafted for confidence, durability and refined style", kind: "lifestyle", width: 512, height: 512 },
       { file: "/images/products/mens-leather-jacket/03-why.png", alt: "Why AZMIQ leather: genuine hide, durable metal zips, soft inner lining, tailored fit", kind: "gallery", width: 512, height: 512 },
-      { file: "/images/products/mens-leather-jacket/04-size.jpg", alt: "Men's leather jacket size chart with chest, shoulder, sleeve and length measurements", kind: "gallery", width: 1800, height: 1200 },
     ],
     variants: [
       { sku: "AZMIQ-MLJ-S", title: "S", priceGbp: 13900, inventory: 20 },
