@@ -1,21 +1,16 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
-import { Filters, SortLinks } from "@/components/shop/Filters";
-import { ProductCard } from "@/components/shop/ProductCard";
+import { Suspense } from "react";
+import { CollectionView, CollectionViewFromUrl } from "@/components/shop/CollectionView";
 import { JsonLd, breadcrumbJsonLd, itemListJsonLd } from "@/lib/seo";
-import {
-  facetCounts, filterAndSort, getCatalogue, getCategories, getCategoryBySlug,
-  type Facets, type SortKey,
-} from "@/lib/data";
-import { readCurrency } from "@/lib/cart";
+import { filterAndSort, getCatalogue, getCategories, getCategoryBySlug } from "@/lib/data";
 import { SITE } from "@/lib/site";
 import { resolveRedirect } from "@/lib/redirects";
 
 export const revalidate = 3600;
 
 type Params = { slug: string };
-type Search = Record<string, string | string[] | undefined>;
 
 /** Every collection is prerendered at build time; there are only a handful. */
 export async function generateStaticParams() {
@@ -55,19 +50,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-function toArray(value: string | string[] | undefined): string[] {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
-}
-
-export default async function CollectionPage({
-  params, searchParams,
-}: {
-  params: Promise<Params>;
-  searchParams: Promise<Search>;
-}) {
+export default async function CollectionPage({ params }: { params: Promise<Params> }) {
+  // No searchParams and no cookies: this page is rendered once per collection
+  // and served from cache. Filters and sort are applied in the browser.
   const { slug } = await params;
-  const search = await searchParams;
   const category = await resolveCategory(slug);
   if (!category) {
     // A renamed or retired collection still has to honour its redirect. This
@@ -78,28 +64,8 @@ export default async function CollectionPage({
     notFound();
   }
 
-  const currency = await readCurrency();
-  const all = await getCatalogue(currency);
-
-  const facets: Facets = {
-    category: slug,
-    finish: toArray(search.finish),
-    capacity: toArray(search.capacity),
-    price: toArray(search.price),
-    onSale: search.sale === "1",
-    inStock: search.stock === "1",
-  };
-  const sort = (typeof search.sort === "string" ? search.sort : "featured") as SortKey;
-
-  // Counts are computed against the products in this collection only.
+  const all = await getCatalogue();
   const inCategory = filterAndSort(all, { category: slug }, "featured");
-  const products = filterAndSort(all, facets, sort);
-  const counts = facetCounts(inCategory, facets);
-
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(search)) {
-    for (const v of toArray(value)) query.append(key, v);
-  }
 
   const basePath = `/collections/${slug}`;
   const trail = [
@@ -107,16 +73,10 @@ export default async function CollectionPage({
     { name: category.title, path: basePath },
   ];
 
-  // A filtered view that returns nothing must not be indexed as a thin page.
-  const hasFilters =
-    facets.finish!.length + facets.capacity!.length + facets.price!.length > 0 ||
-    facets.onSale || facets.inStock;
-
   return (
     <>
       <JsonLd data={breadcrumbJsonLd(trail)} />
-      <JsonLd data={itemListJsonLd(products, category.title)} />
-      {hasFilters ? <meta name="robots" content="noindex, follow" /> : null}
+      <JsonLd data={itemListJsonLd(inCategory, category.title)} />
 
       <div className="container-page pb-28 pt-14 md:pt-20">
         <Breadcrumbs trail={trail} />
@@ -134,42 +94,15 @@ export default async function CollectionPage({
           <hr className="rule-accent mt-9" />
         </header>
 
-        <div className="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-[15rem_1fr]">
-          <Filters
-            basePath={basePath}
-            params={query}
-            facets={facets}
-            counts={counts}
-            total={products.length}
-          />
-
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-              <SortLinks basePath={basePath} params={query} current={sort} />
-            </div>
-
-            {products.length === 0 ? (
-              <div className="py-24 text-center">
-                <p className="font-serif text-2xl text-ink">Nothing matches those filters</p>
-                <p className="mt-3 text-ink-muted">
-                  Try widening the capacity or price range, or clear the filters to see the whole
-                  collection.
-                </p>
-              </div>
-            ) : (
-              <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-16 xl:grid-cols-3 xl:gap-x-8">
-                {products.map((product, i) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    priority={i < 3}
-                    sizes="(min-width: 1280px) 26vw, (min-width: 1024px) 38vw, 45vw"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* The fallback is the unfiltered grid, so the cached HTML - what
+            crawlers and no-JS visitors get - is the full collection. */}
+        <Suspense
+          fallback={
+            <CollectionView products={inCategory} slug={slug} query="" />
+          }
+        >
+          <CollectionViewFromUrl products={inCategory} slug={slug} />
+        </Suspense>
       </div>
     </>
   );

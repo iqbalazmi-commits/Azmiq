@@ -12,3 +12,6 @@ next-env.d.ts
 
 # Database exports - real customer names, addresses and emails.
 backups
+
+# Netlify local build output
+.netlify

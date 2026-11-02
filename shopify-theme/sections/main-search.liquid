@@ -1,0 +1,54 @@
+<div class="container page-head" style="padding-bottom:7rem">
+  <h1 class="heading-xl" style="margin-top:0">Search</h1>
+  <hr class="rule">
+
+  <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
+    <input type="hidden" name="type" value="product">
+    <input type="hidden" name="options[prefix]" value="last">
+    <label class="visually-hidden" for="SearchQuery">Search the shop</label>
+    <input class="input" id="SearchQuery" type="search" name="q" value="{{ search.terms | escape }}" placeholder="Try “hammered” or “jug”" autofocus>
+    <button class="button" type="submit">Search</button>
+  </form>
+
+  {%- if search.performed -%}
+    <p class="small muted" style="margin-top:2rem">
+      {{ search.results_count }} {{ search.results_count | pluralize: 'result', 'results' }} for “{{ search.terms | escape }}”
+    </p>
+    {%- paginate search.results by 24 -%}
+      {%- if search.results_count == 0 -%}
+        <div class="empty"><p>Nothing found</p><p>Check the spelling, or try one of the suggestions below.</p></div>
+      {%- else -%}
+        <div class="collection-results product-grid product-grid--4">
+          {%- for item in search.results -%}
+            {%- if item.object_type == 'product' -%}{% render 'product-card', product: item %}{%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+      {%- if paginate.pages > 1 -%}
+        <nav class="pagination" aria-label="Pagination">
+          {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}">&larr;</a>{%- endif -%}
+          {%- if paginate.next -%}<a href="{{ paginate.next.url }}">&rarr;</a>{%- endif -%}
+        </nav>
+      {%- endif -%}
+    {%- endpaginate -%}
+  {%- endif -%}
+
+  {%- assign suggestions = section.settings.suggestions | split: ',' -%}
+  {%- if suggestions.size > 0 -%}
+    <div class="suggestions" aria-label="Popular searches">
+      {%- for s in suggestions -%}
+        {%- assign term = s | strip -%}
+        <a href="{{ routes.search_url }}?q={{ term | url_encode }}&type=product">{{ term }}</a>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Search",
+  "settings": [
+    { "type": "text", "id": "suggestions", "label": "Suggested searches (comma-separated)", "default": "hammered, 950ml, jug, acacia, gift set, copper ball" }
+  ]
+}
+{% endschema %}

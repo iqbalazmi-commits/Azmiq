@@ -1,0 +1,93 @@
+{%- comment -%}
+  Minimalist navbar, as on azmiq.com: navigation on the left, logo dead
+  centre, currency / search / account / basket on the right. Solid white, a
+  hairline border that deepens into a soft shadow once the page scrolls.
+{%- endcomment -%}
+{%- assign menu = section.settings.menu -%}
+<header class="site-header" data-header>
+  <div class="container site-header__inner">
+    <div class="site-header__left">
+      {%- comment -%} Mobile: a <details> drawer, so it opens without JavaScript. {%- endcomment -%}
+      <details class="mobile-nav" data-mobile-nav>
+        <summary class="icon-button" aria-label="Open menu">{% render 'icon', name: 'menu', size: 22 %}</summary>
+        <div class="mobile-nav__backdrop" data-close></div>
+        <div class="mobile-nav__panel" role="dialog" aria-label="Menu">
+          <div class="mobile-nav__top">
+            <span class="mobile-nav__brand">{{ shop.name | upcase }}</span>
+            <button type="button" class="icon-button" data-close aria-label="Close menu">{% render 'icon', name: 'close', size: 22 %}</button>
+          </div>
+          <ul class="mobile-nav__links">
+            {%- for link in menu.links -%}
+              <li><a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a></li>
+            {%- endfor -%}
+          </ul>
+          {%- if section.settings.secondary_menu != blank -%}
+            <ul class="mobile-nav__secondary">
+              {%- for link in section.settings.secondary_menu.links -%}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      </details>
+
+      <nav class="primary-nav" aria-label="Primary">
+        <ul>
+          {%- for link in menu.links -%}
+            <li><a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+    </div>
+
+    <a href="{{ routes.root_url }}" class="site-header__logo" aria-label="{{ shop.name }} home">
+      {% render 'logo', size: section.settings.logo_size %}
+    </a>
+
+    <div class="site-header__right">
+      {%- if localization.available_countries.size > 1 and section.settings.show_currency -%}
+        {%- form 'localization', class: 'localization', data-localization: '' -%}
+          <label class="visually-hidden" for="HeaderCountry">Country / currency</label>
+          <select id="HeaderCountry" name="country_code">
+            {%- for country in localization.available_countries -%}
+              <option value="{{ country.iso_code }}"{% if country.iso_code == localization.country.iso_code %} selected{% endif %}>
+                {{ country.currency.iso_code }} {{ country.currency.symbol }} · {{ country.name }}
+              </option>
+            {%- endfor -%}
+          </select>
+          <noscript><button class="button button--sm">Update</button></noscript>
+        {%- endform -%}
+      {%- endif -%}
+
+      <a href="{{ routes.search_url }}" class="icon-button">
+        {% render 'icon', name: 'search', size: 19 %}<span class="visually-hidden">Search</span>
+      </a>
+
+      {%- if shop.customer_accounts_enabled -%}
+        <a href="{{ routes.account_url }}" class="icon-button icon-button--desktop">
+          {% render 'icon', name: 'user', size: 19 %}
+          <span class="visually-hidden">{% if customer %}Your account{% else %}Sign in{% endif %}</span>
+        </a>
+      {%- endif -%}
+
+      <a href="{{ routes.cart_url }}" class="icon-button">
+        {% render 'icon', name: 'bag', size: 19 %}
+        <span class="cart-count" data-cart-count aria-hidden="true"{% if cart.item_count == 0 %} hidden{% endif %}>{{ cart.item_count }}</span>
+        <span class="visually-hidden">Basket, {{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }}</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "class": "section-header",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
+    { "type": "link_list", "id": "secondary_menu", "label": "Extra links in the mobile menu", "info": "e.g. Shipping, Returns, Copper care guide" },
+    { "type": "range", "id": "logo_size", "label": "Logo size", "min": 36, "max": 72, "step": 2, "unit": "px", "default": 46 },
+    { "type": "checkbox", "id": "show_currency", "label": "Show country / currency selector", "default": true }
+  ]
+}
+{% endschema %}

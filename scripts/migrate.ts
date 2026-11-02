@@ -10,7 +10,9 @@ async function main() {
     const postgres = (await import("postgres")).default;
     const { drizzle } = await import("drizzle-orm/postgres-js");
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-    const client = postgres(url, { max: 1 });
+    // Transaction-mode poolers (Supabase :6543, PgBouncer) cannot hold
+    // prepared statements across checkouts - same rule as db/index.ts.
+    const client = postgres(url, { max: 1, prepare: !/pgbouncer|pooler/i.test(url) });
     await migrate(drizzle(client), { migrationsFolder: "./db/migrations" });
     await client.end();
     console.log("Migrations applied to PostgreSQL.");

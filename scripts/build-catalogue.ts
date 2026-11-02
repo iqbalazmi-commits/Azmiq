@@ -203,7 +203,6 @@ const LEATHER: LeatherSpec[] = [
       { file: "/images/products/mens-leather-jacket/01-flat.jpg", kind: "gallery", alt: "The jacket laid flat, showing the cut, collar and zip hardware", width: 1600, height: 1192 },
       { file: "/images/products/mens-leather-jacket/02-brand.png", kind: "lifestyle", alt: "AZMIQ leather — crafted for confidence, durability and refined style", width: 512, height: 512 },
       { file: "/images/products/mens-leather-jacket/03-why.png", kind: "gallery", alt: "Why AZMIQ leather: genuine hide, durable metal zips, soft inner lining, tailored fit", width: 512, height: 512 },
-      { file: "/images/products/mens-leather-jacket/04-size.jpg", kind: "gallery", alt: "Men's leather jacket size chart with chest, shoulder, sleeve and length measurements", width: 1800, height: 1200 },
     ],
   },
   {

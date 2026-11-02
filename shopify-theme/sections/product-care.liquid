@@ -1,0 +1,39 @@
+{%- comment -%}
+  "Looking after it". Shows only when the product has the
+  custom.care_instructions metafield.
+{%- endcomment -%}
+{%- assign care = product.metafields.custom.care_instructions -%}
+{%- liquid
+  assign is_apparel = false
+  for c in product.collections
+    if c.handle contains 'leather'
+      assign is_apparel = true
+    endif
+  endfor
+-%}
+{%- if care.value != blank -%}
+  <section class="container section">
+    <div class="care">
+      <div>
+        <p class="eyebrow">Looking after it</p>
+        <h2>{% if is_apparel %}Leather care{% else %}Copper care{% endif %}</h2>
+        <hr class="rule">
+      </div>
+      <div class="prose rte">
+        {%- if care.type == 'rich_text_field' -%}{{ care | metafield_tag }}{%- else -%}{{ care.value | newline_to_br }}{%- endif -%}
+        {%- if is_apparel == false and section.settings.guide_url != blank -%}
+          <p style="margin-top:1.5rem"><a href="{{ section.settings.guide_url }}">Read the full copper care guide</a></p>
+        {%- endif -%}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product care",
+  "settings": [
+    { "type": "url", "id": "guide_url", "label": "Copper care guide page" }
+  ]
+}
+{% endschema %}

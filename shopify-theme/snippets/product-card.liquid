@@ -1,0 +1,52 @@
+{%- comment -%}
+  An editorial product tile, as on azmiq.com: the photograph carries the card,
+  the title is in the serif, the price is quiet beneath. A second image
+  cross-fades in on hover. The whole tile is one link.
+  Params: product, eager (boolean), sizes
+{%- endcomment -%}
+{%- liquid
+  assign hero = product.featured_media
+  assign alt_media = product.media[1]
+  assign sizes = sizes | default: '(min-width: 1280px) 24vw, (min-width: 768px) 32vw, 46vw'
+  assign on_sale = false
+  if product.compare_at_price_min > product.price_min
+    assign on_sale = true
+  endif
+  if eager
+    assign loading = 'eager'
+  else
+    assign loading = 'lazy'
+  endif
+-%}
+<article class="card">
+  <div class="card__media{% if alt_media %} card__media--has-alt{% endif %}">
+    {%- if hero -%}
+      {{ hero | image_url: width: 900 | image_tag: class: 'card__main', sizes: sizes, widths: '300, 450, 600, 750, 900', loading: loading, alt: hero.alt | default: product.title }}
+    {%- endif -%}
+    {%- if alt_media -%}
+      {{ alt_media | image_url: width: 900 | image_tag: class: 'card__alt', sizes: sizes, widths: '300, 450, 600, 750, 900', loading: 'lazy', alt: '' }}
+    {%- endif -%}
+
+    {%- if product.available == false -%}
+      <span class="card__badge card__badge--soldout">Sold out</span>
+    {%- elsif on_sale -%}
+      <span class="card__badge">Sale</span>
+    {%- endif -%}
+  </div>
+
+  <div class="card__body">
+    <h3 class="card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+    {% render 'rating', product: product, size: 'sm' %}
+    {%- assign subtitle = product.metafields.custom.subtitle.value -%}
+    {%- if subtitle != blank -%}
+      <p class="card__subtitle">{{ subtitle }}</p>
+    {%- endif -%}
+    <p class="card__price">
+      {%- if product.price_varies -%}<span class="muted">From</span>{%- endif -%}
+      <span>{{ product.price_min | money }}</span>
+      {%- if on_sale -%}
+        <s><span class="visually-hidden">Previous price </span>{{ product.compare_at_price_min | money }}</s>
+      {%- endif -%}
+    </p>
+  </div>
+</article>

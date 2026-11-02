@@ -6,7 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/* Triggered once a day by Vercel Cron (see vercel.json), which sends
+/* Triggered once a day by Vercel Cron (vercel.json) or, on Netlify, by the
+   scheduled function in netlify/functions/basket-recovery.mjs. Both send
    `Authorization: Bearer <CRON_SECRET>`. Without the secret this refuses to
    run at all rather than sending reminders to anyone who can guess the URL. */
 

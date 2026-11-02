@@ -1,0 +1,31 @@
+<div class="container page-head" style="padding-bottom:7rem">
+  <a href="{{ routes.account_url }}" class="link-arrow">&larr; Your account</a>
+  <h1 class="heading-xl">Order {{ order.name }}</h1>
+  <p class="muted" style="margin-top:.75rem">Placed {{ order.created_at | date: '%-d %B %Y' }}{% if order.cancelled %} · Cancelled{% endif %}</p>
+  <hr class="rule">
+
+  <table class="table" style="margin-top:2.5rem">
+    <thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
+    <tbody>
+      {%- for item in order.line_items -%}
+        <tr>
+          <td>{{ item.title | link_to: item.product.url }}{% if item.fulfillment %}<br><span class="muted small">Shipped {{ item.fulfillment.created_at | date: '%-d %b' }}{% if item.fulfillment.tracking_url %} · <a href="{{ item.fulfillment.tracking_url }}" style="text-decoration:underline">Track</a>{% endif %}</span>{% endif %}</td>
+          <td>{{ item.quantity }}</td>
+          <td class="tabular">{{ item.final_line_price | money }}</td>
+        </tr>
+      {%- endfor -%}
+    </tbody>
+    <tfoot>
+      <tr><td colspan="2">Subtotal</td><td class="tabular">{{ order.line_items_subtotal_price | money }}</td></tr>
+      {%- for d in order.cart_level_discount_applications -%}<tr><td colspan="2">{{ d.title }}</td><td class="tabular">−{{ d.total_allocated_amount | money }}</td></tr>{%- endfor -%}
+      {%- for s in order.shipping_methods -%}<tr><td colspan="2">Delivery ({{ s.title }})</td><td class="tabular">{{ s.price | money }}</td></tr>{%- endfor -%}
+      {%- for t in order.tax_lines -%}<tr><td colspan="2">{{ t.title }} ({{ t.rate_percentage }}%)</td><td class="tabular">{{ t.price | money }}</td></tr>{%- endfor -%}
+      <tr><td colspan="2"><strong>Total</strong></td><td class="tabular"><strong>{{ order.total_price | money_with_currency }}</strong></td></tr>
+    </tfoot>
+  </table>
+
+  <div class="about" style="margin-top:3rem">
+    <div><h2 class="heading-md">Delivery address</h2><div class="muted" style="margin-top:1rem">{{ order.shipping_address | format_address }}</div></div>
+    <div><h2 class="heading-md">Billing address</h2><div class="muted" style="margin-top:1rem">{{ order.billing_address | format_address }}</div></div>
+  </div>
+</div>

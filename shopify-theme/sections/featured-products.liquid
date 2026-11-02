@@ -1,0 +1,38 @@
+<section class="section{% if section.settings.sunken %} section--sunken{% endif %}">
+  <div class="container section-head">
+    <div>
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <hr class="rule">
+      <h2 class="heading-lg">{{ section.settings.heading }}</h2>
+    </div>
+    <p class="small muted">Swipe to explore &rarr;</p>
+  </div>
+
+  {%- assign c = section.settings.collection | default: collections.all -%}
+  <div class="scroll-x">
+    {%- for product in c.products limit: section.settings.limit -%}
+      <div>{% render 'product-card', product: product, eager: forloop.first, sizes: '18.5rem' %}</div>
+    {%- else -%}
+      <p class="muted">Choose a collection for this section in the theme editor.</p>
+    {%- endfor -%}
+    <a href="{{ c.url | default: routes.all_products_collection_url }}" class="carousel-more">
+      <span>{% render 'icon', name: 'arrow-right', size: 20 %}</span>
+      <span>{{ section.settings.more_label }}</span>
+    </a>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured carousel",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The edit" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Featured this season" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "limit", "label": "Products to show", "min": 3, "max": 12, "step": 1, "default": 8 },
+    { "type": "text", "id": "more_label", "label": "Last tile label", "default": "Shop everything" },
+    { "type": "checkbox", "id": "sunken", "label": "Grey background", "default": true }
+  ],
+  "presets": [{ "name": "Featured carousel" }]
+}
+{% endschema %}

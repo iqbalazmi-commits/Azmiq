@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, ShoppingBag, User } from "lucide-react";
 import { NAV, SITE } from "@/lib/site";
+import { useCartCount, useSignedIn } from "@/lib/browser-state";
 import { MobileNav } from "./MobileNav";
 import { Logo } from "./Logo";
 
@@ -12,16 +13,11 @@ import { Logo } from "./Logo";
    on the right. Solid crisp white, a hairline border that deepens into a soft
    shadow once the page scrolls. */
 
-export function HeaderShell({
-  cartCount,
-  signedIn,
-  currencySwitcher,
-}: {
-  cartCount: number;
-  signedIn: boolean;
-  currencySwitcher: ReactNode;
-}) {
+export function HeaderShell({ currencySwitcher }: { currencySwitcher: ReactNode }) {
   const pathname = usePathname();
+  // Read in the browser so the header - and so every page - can be static.
+  const cartCount = useCartCount();
+  const signedIn = useSignedIn();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -52,7 +48,7 @@ export function HeaderShell({
               <MobileNav items={NAV} />
             </div>
             <nav aria-label="Primary" className="hidden lg:block">
-              <ul className="flex items-center gap-7">
+              <ul className="flex items-center gap-5 xl:gap-7">
                 {NAV.map((item) => {
                   const active = pathname === item.href;
                   return (
@@ -61,7 +57,7 @@ export function HeaderShell({
                         href={item.href}
                         aria-current={active ? "page" : undefined}
                         className={
-                          "text-[0.72rem] uppercase tracking-widest underline-offset-[10px] transition-colors " +
+                          "whitespace-nowrap text-[0.72rem] uppercase tracking-widest underline-offset-[10px] transition-colors " +
                           (active
                             ? "text-ink underline decoration-2 decoration-[var(--color-accent-gold)]"
                             : "text-ink-muted hover:text-ink")

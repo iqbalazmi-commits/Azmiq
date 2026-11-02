@@ -1,0 +1,36 @@
+<section class="section--inverse">
+  <div class="container editorial">
+    <div class="editorial__copy">
+      {%- if section.settings.eyebrow != blank -%}<p class="eyebrow eyebrow--gold">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <hr class="rule rule--gold">
+      <h2>{{ section.settings.heading | newline_to_br }}</h2>
+      {%- if section.settings.text != blank -%}<div class="rte">{{ section.settings.text }}</div>{%- endif -%}
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link }}" class="button button--inverse">{{ section.settings.button_label }}</a>
+      {%- endif -%}
+    </div>
+    <div class="editorial__media">
+      {%- if section.settings.image != blank -%}
+        {{ section.settings.image | image_url: width: 1600 | image_tag: sizes: '(min-width: 1024px) 46vw, 90vw', widths: '600, 900, 1200, 1600', loading: 'lazy' }}
+      {%- elsif section.settings.product != blank and section.settings.product.featured_media -%}
+        {{ section.settings.product.featured_media | image_url: width: 1600 | image_tag: sizes: '(min-width: 1024px) 46vw, 90vw', widths: '600, 900, 1200, 1600', loading: 'lazy' }}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Dark editorial",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "New — the leather line" },
+    { "type": "textarea", "id": "heading", "label": "Heading", "default": "Genuine leather,\nthe same standard" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Genuine leather outerwear in clean, modern cuts — a café-racer jacket for men, and belted double-breasted trenches for women in black and deep burgundy. Full-grain hide, a soft full lining, a tailored fit. Five sizes, S to XXL.</p>" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop leather jackets" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "product", "id": "product", "label": "Or use this product's photo" }
+  ],
+  "presets": [{ "name": "Dark editorial" }]
+}
+{% endschema %}

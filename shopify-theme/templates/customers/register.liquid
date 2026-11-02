@@ -1,0 +1,13 @@
+<div class="container narrow">
+  <h1>Create an account</h1>
+  <hr class="rule">
+  {%- form 'create_customer', novalidate: 'novalidate' -%}
+    {%- if form.errors -%}<p class="form-message form-message--error" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
+    <div class="field"><label for="FirstName">First name</label><input class="input" type="text" name="customer[first_name]" id="FirstName" autocomplete="given-name"></div>
+    <div class="field"><label for="LastName">Last name</label><input class="input" type="text" name="customer[last_name]" id="LastName" autocomplete="family-name"></div>
+    <div class="field"><label for="RegisterEmail">Email</label><input class="input" type="email" name="customer[email]" id="RegisterEmail" autocomplete="email" required></div>
+    <div class="field"><label for="RegisterPassword">Password</label><input class="input" type="password" name="customer[password]" id="RegisterPassword" autocomplete="new-password" required></div>
+    <button class="button button--lg button--full" type="submit">Create account</button>
+  {%- endform -%}
+  <div class="alt-links"><a href="{{ routes.account_login_url }}">Already have an account? Sign in</a></div>
+</div>
