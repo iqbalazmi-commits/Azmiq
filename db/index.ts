@@ -3,6 +3,7 @@ import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { drizzle as drizzlePg, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { normalizeDatabaseUrl } from "./url";
 
 /* ===========================================================================
    DATABASE CLIENT
@@ -31,9 +32,10 @@ const globalForDb = globalThis as unknown as {
 };
 
 function createDb(): Database {
-  const url = process.env.DATABASE_URL;
+  const raw = process.env.DATABASE_URL;
 
-  if (url) {
+  if (raw) {
+    const url = normalizeDatabaseUrl(raw);
     const client = postgres(url, {
       max: Number(process.env.DATABASE_POOL_MAX ?? 10),
       idle_timeout: 20,
