@@ -46,7 +46,8 @@ export function normalizeDatabaseUrl(raw: string): string {
 function describe(url: string): string {
   const notes: string[] = [];
   if (!/^postgres(ql)?:\/\//i.test(url)) {
-    notes.push(`It should start with "postgresql://" but starts with "${url.slice(0, 6).replace(/[^a-z:/]/gi, "?")}...".`);
+    // Never echo any of the value: it may be just the password on its own.
+    notes.push('It should start with "postgresql://" - paste the whole connection string, not only the password.');
   }
   if (!url.includes("@")) notes.push('It has no "@" between the password and the host.');
   if (!/:\d+\//.test(url)) notes.push('It has no ":port/" (expected ":6543/postgres" for the Supabase pooler).');
