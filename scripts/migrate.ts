@@ -4,9 +4,11 @@ import "./load-env";
    repeatedly - drizzle records what it has already applied. */
 
 async function main() {
-  const url = process.env.DATABASE_URL;
+  const raw = process.env.DATABASE_URL;
 
-  if (url) {
+  if (raw) {
+    const { normalizeDatabaseUrl } = await import("../db/url");
+    const url = normalizeDatabaseUrl(raw);
     const postgres = (await import("postgres")).default;
     const { drizzle } = await import("drizzle-orm/postgres-js");
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
