@@ -583,21 +583,6 @@ export const CATALOGUE: SeedProduct[] = [
   },
 ];
 
-/* ---------------------------------------------------------------------------
-   PRESENTMENT PRICING
-
-   Hand-set, rounded prices per currency, derived from the live GBP price. Not
-   a live FX feed — merchandising can override any row in the admin panel.
-   ------------------------------------------------------------------------- */
-export const PRESENTMENT_MULTIPLIERS: Record<string, number> = {
-  EUR: 1.18,
-  USD: 1.28,
-  CAD: 1.74,
-  AUD: 1.94,
-};
-
-/** Round to a whole major unit so the result looks deliberate, not converted. */
-export function presentmentPrice(gbpMinor: number, multiplier: number): number {
-  const major = (gbpMinor / 100) * multiplier;
-  return Math.round(major) * 100;
-}
+// Presentment pricing lives in lib/presentment.ts so the admin panel can use
+// the same rounding when a product is added or repriced.
+export { PRESENTMENT_MULTIPLIERS, presentmentPrice } from "../lib/presentment";

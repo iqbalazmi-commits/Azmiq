@@ -1,6 +1,6 @@
 import {
   pgTable, text, integer, boolean, timestamp, jsonb, uniqueIndex,
-  index, primaryKey, serial,
+  index, primaryKey, serial, customType,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -78,6 +78,26 @@ export const productImages = pgTable("product_images", {
   height: integer("height").notNull().default(1500),
   position: integer("position").notNull().default(0),
 }, (t) => [index("product_images_product_idx").on(t.productId)]);
+
+/** Raw image bytes. postgres.js hands back a Buffer, PGlite a Uint8Array;
+    both are Uint8Arrays, which is all the media route needs. */
+const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({
+  dataType() {
+    return "bytea";
+  },
+});
+
+/** Photos uploaded through the admin panel. Kept in the database so the shop
+    needs no separate file-storage account; product_images points at them by
+    URL (/media/<id>) exactly as it points at the bundled /images files. The
+    browser shrinks each photo before upload, so rows are a few hundred KB. */
+export const productMedia = pgTable("product_media", {
+  id: id(),
+  contentType: text("content_type").notNull(),
+  data: bytea("data").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  createdAt: created(),
+});
 
 export const variants = pgTable("variants", {
   id: id(),
