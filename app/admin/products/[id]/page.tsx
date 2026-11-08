@@ -1,20 +1,29 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Star, Trash2 } from "lucide-react";
 import { db } from "@/db";
 import * as t from "@/db/schema";
 import { requireAdminPage } from "@/lib/admin";
 import { ProductEditor } from "@/components/admin/ProductEditor";
 import { VariantEditor } from "@/components/admin/VariantEditor";
 import { Media } from "@/components/ui/Media";
+import { PhotoUploader } from "@/components/admin/PhotoUploader";
+import { deleteProductImage, setMainProductImage, setProductStatus } from "@/lib/actions/admin";
 
 export const metadata = { title: "Edit product" };
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminProductPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ created?: string }>;
+}) {
   await requireAdminPage();
   const { id } = await params;
+  const { created } = await searchParams;
 
   const [product, categories] = await Promise.all([
     db.query.products.findFirst({
@@ -52,28 +61,76 @@ export default async function AdminProductPage({ params }: { params: Promise<{ i
       </div>
       <hr className="rule-accent mt-6" />
 
+      {product.status !== "active" ? (
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface-raised p-5">
+          <p className="text-sm text-ink">
+            {created ? "Product created. " : null}
+            <strong>This product is hidden from the shop.</strong>{" "}
+            {product.images.length === 0
+              ? "Add at least one photo below, then publish it."
+              : "Publish it when you are happy with it."}
+          </p>
+          <form action={setProductStatus}>
+            <input type="hidden" name="id" value={product.id} />
+            <input type="hidden" name="status" value="active" />
+            <button
+              type="submit"
+              disabled={product.images.length === 0}
+              className="min-h-11 rounded-md bg-surface-brand px-5 text-sm font-medium text-ink-on-brand hover:bg-surface-brand-hover disabled:opacity-40"
+            >
+              Publish
+            </button>
+          </form>
+        </div>
+      ) : null}
+
       <section className="mt-8">
-        <h2 className="font-serif text-xl text-ink">Images</h2>
+        <h2 className="font-serif text-xl text-ink">Photos</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          The first image is used on product cards and in search results. The macro shot is what
-          sells the hammered texture — keep one in every product.
+          The first photo is used on product cards, in search and in Google. Use “Make main” to
+          change it. Portrait photos (taller than wide) look best.
         </p>
-        <ul className="mt-4 flex flex-wrap gap-3">
-          {product.images.map((image) => (
-            <li key={image.id} className="w-28">
+        <ul className="mt-4 flex flex-wrap gap-4">
+          {product.images.map((image, index) => (
+            <li key={image.id} className="w-32">
               <Media
                 src={image.url}
                 alt={image.alt}
                 width={200}
                 height={250}
-                sizes="112px"
+                sizes="128px"
                 aspect="portrait"
                 className="rounded-md border border-border"
               />
-              <p className="mt-1.5 text-xs text-ink-muted">{image.kind}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {index === 0 ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-wellness">
+                    <Star size={12} aria-hidden="true" />
+                    Main
+                  </span>
+                ) : (
+                  <form action={setMainProductImage}>
+                    <input type="hidden" name="imageId" value={image.id} />
+                    <button type="submit" className="min-h-9 rounded-md border border-border-control px-2 text-xs text-ink hover:border-ink">
+                      Make main
+                    </button>
+                  </form>
+                )}
+                <form action={deleteProductImage}>
+                  <input type="hidden" name="imageId" value={image.id} />
+                  <button
+                    type="submit"
+                    aria-label={`Delete photo ${index + 1}`}
+                    className="inline-flex min-h-9 items-center rounded-md border border-border-control px-2 text-xs text-danger hover:border-danger"
+                  >
+                    <Trash2 size={13} aria-hidden="true" />
+                  </button>
+                </form>
+              </div>
             </li>
           ))}
         </ul>
+        <PhotoUploader productId={product.id} />
       </section>
 
       <section className="mt-12">

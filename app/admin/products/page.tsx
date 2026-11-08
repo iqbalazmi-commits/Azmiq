@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { asc } from "drizzle-orm";
 import { db } from "@/db";
 import * as t from "@/db/schema";
@@ -22,9 +23,18 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="max-w-6xl">
-      <h1 className="font-serif text-3xl text-ink">Products</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-serif text-3xl text-ink">Products</h1>
+        <Link
+          href="/admin/products/new"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md bg-surface-brand px-4 text-sm font-medium text-ink-on-brand hover:bg-surface-brand-hover"
+        >
+          <Plus size={16} aria-hidden="true" />
+          Add product
+        </Link>
+      </div>
       <p className="mt-1.5 text-ink-muted">
-        {products.length} products. Click one to edit its copy, price and stock.
+        {products.length} products. Click one to edit its copy, photos, price and stock.
       </p>
       <hr className="rule-accent mt-6" />
 

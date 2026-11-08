@@ -18,6 +18,10 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    // Admin photo uploads. The browser shrinks photos to well under 1 MB
+    // first; 5mb leaves room for the odd large PNG and stays under the 6 MB
+    // request limit of Netlify functions.
+    serverActions: { bodySizeLimit: "5mb" },
   },
   async headers() {
     return [
