@@ -14,6 +14,7 @@ import { recordServerPurchase } from "@/lib/analytics-server";
 import { parseMoneyInput } from "@/lib/money";
 import { slugify } from "@/lib/utils";
 import { presentmentRows } from "@/lib/presentment";
+import { imageInfo } from "@/lib/image-size";
 
 /* ===========================================================================
    ADMIN ACTIONS
@@ -248,6 +249,99 @@ export async function setInventory(formData: FormData): Promise<void> {
 
 /* ------------------------------------------------------- NEW PRODUCTS */
 
+type DraftInput = {
+  title: string;
+  summary: string;
+  description: string;
+  price: number;
+  compareAt: number | null;
+  inventory: number;
+  sku: string | null;
+  categoryIds: string[];
+};
+
+/* Shared by "Add product" and "Import from file". Products start as drafts
+   and only go live when the owner presses Publish, so a half-finished
+   product never appears in the shop. Returns null when no section is valid. */
+async function insertDraftProduct(input: DraftInput): Promise<string | null> {
+  const valid = await db
+    .select({ id: t.categories.id })
+    .from(t.categories)
+    .where(inArray(t.categories.id, input.categoryIds));
+  if (valid.length === 0) return null;
+
+  // A free web address: "copper-mug", then "copper-mug-2", "copper-mug-3"...
+  // Long marketplace titles are cut at a word boundary to keep URLs readable.
+  const full = slugify(input.title);
+  const cut = full.slice(0, 81);
+  const base =
+    (full.length <= 80 ? full : cut.includes("-") ? cut.replace(/-[^-]*$/, "") : full.slice(0, 80)) || "product";
+  const taken = new Set(
+    (
+      await db
+        .select({ slug: t.products.slug })
+        .from(t.products)
+        .where(sql`${t.products.slug} = ${base} or ${t.products.slug} like ${base + "-%"}`)
+    ).map((r) => r.slug),
+  );
+  let slug = base;
+  for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+
+  const sku =
+    input.sku ||
+    `AZMIQ-${slug.toUpperCase().replace(/-/g, "").slice(0, 24)}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
+  const [{ next }] = await db
+    .select({ next: sql<number>`coalesce(max(${t.products.position}), -1) + 1` })
+    .from(t.products);
+
+  return db.transaction(async (tx) => {
+    const [product] = await tx
+      .insert(t.products)
+      .values({
+        slug,
+        title: input.title,
+        summary: input.summary,
+        description: input.description,
+        status: "draft",
+        position: Number(next),
+        seoDescription: input.summary || null,
+      })
+      .returning({ id: t.products.id });
+    await tx.insert(t.productCategories).values(valid.map((c) => ({ productId: product.id, categoryId: c.id })));
+    const [variant] = await tx
+      .insert(t.variants)
+      .values({
+        productId: product.id,
+        sku,
+        title: "Standard",
+        priceGbp: input.price,
+        compareAtGbp: input.compareAt,
+        inventory: input.inventory,
+      })
+      .returning({ id: t.variants.id });
+    await tx.insert(t.variantPrices).values(presentmentRows(variant.id, input.price, input.compareAt));
+    return product.id;
+  });
+}
+
+type PriceStock =
+  | { ok: true; price: number; compareAt: number | null; inventory: number }
+  | { ok: false; error: string };
+
+/** Shared price/stock rules for "Add product" and "Import from file". */
+function parsePriceStock(priceRaw: string, compareAtRaw: string, inventory: number): PriceStock {
+  const price = parseMoneyInput(priceRaw);
+  const compareAt = compareAtRaw.trim() ? parseMoneyInput(compareAtRaw) : null;
+  if (price === null || price <= 0) return { ok: false, error: "Enter a price, e.g. 24.99." };
+  if (compareAt !== null && compareAt <= price) {
+    return { ok: false, error: "The “was” price must be higher than the price, or left empty." };
+  }
+  if (!Number.isInteger(inventory) || inventory < 0) {
+    return { ok: false, error: "Stock must be a whole number, zero or more." };
+  }
+  return { ok: true, price, compareAt, inventory };
+}
+
 const newProductSchema = z.object({
   title: z.string().trim().min(2).max(200),
   summary: z.string().trim().max(500),
@@ -255,9 +349,7 @@ const newProductSchema = z.object({
   categoryIds: z.array(z.string().min(1)).min(1).max(50),
 });
 
-/* Creates the product as a draft with one variant, then sends the owner to
-   its edit page to add photos. It only goes live when they press Publish, so
-   a half-finished product with no photos never appears in the shop. */
+/* "Add product": creates the draft, then opens its page to add photos. */
 export async function createProduct(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
   await requireAdmin();
 
@@ -277,97 +369,148 @@ export async function createProduct(_prev: AdminResult, formData: FormData): Pro
     };
   }
 
-  const price = parseMoneyInput(String(formData.get("price") ?? ""));
-  const compareAtRaw = String(formData.get("compareAt") ?? "").trim();
-  const compareAt = compareAtRaw ? parseMoneyInput(compareAtRaw) : null;
-  const inventory = Number(formData.get("inventory") ?? 0);
-  if (price === null || price <= 0) return { ok: false, error: "Enter a price, e.g. 24.99." };
-  if (compareAt !== null && compareAt <= price) {
-    return { ok: false, error: "The “was” price must be higher than the price, or left empty." };
-  }
-  if (!Number.isInteger(inventory) || inventory < 0) {
-    return { ok: false, error: "Stock must be a whole number, zero or more." };
-  }
-
-  const valid = await db
-    .select({ id: t.categories.id })
-    .from(t.categories)
-    .where(inArray(t.categories.id, parsed.data.categoryIds));
-  if (valid.length === 0) return { ok: false, error: "Those sections no longer exist. Reload the page." };
-
-  // A free web address: "copper-mug", then "copper-mug-2", "copper-mug-3"...
-  const base = slugify(parsed.data.title) || "product";
-  const taken = new Set(
-    (
-      await db
-        .select({ slug: t.products.slug })
-        .from(t.products)
-        .where(sql`${t.products.slug} = ${base} or ${t.products.slug} like ${base + "-%"}`)
-    ).map((r) => r.slug),
+  const money = parsePriceStock(
+    String(formData.get("price") ?? ""),
+    String(formData.get("compareAt") ?? ""),
+    Number(formData.get("inventory") ?? 0),
   );
-  let slug = base;
-  for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+  if (!money.ok) return money;
 
-  const sku = `AZMIQ-${slug.toUpperCase().replace(/-/g, "").slice(0, 24)}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
-  const [{ next }] = await db
-    .select({ next: sql<number>`coalesce(max(${t.products.position}), -1) + 1` })
-    .from(t.products);
-
-  const productId = await db.transaction(async (tx) => {
-    const [product] = await tx
-      .insert(t.products)
-      .values({
-        slug,
-        title: parsed.data.title,
-        summary: parsed.data.summary,
-        description: parsed.data.description,
-        status: "draft",
-        position: Number(next),
-        seoDescription: parsed.data.summary || null,
-      })
-      .returning({ id: t.products.id });
-    await tx.insert(t.productCategories).values(valid.map((c) => ({ productId: product.id, categoryId: c.id })));
-    const [variant] = await tx
-      .insert(t.variants)
-      .values({ productId: product.id, sku, title: "Standard", priceGbp: price, compareAtGbp: compareAt, inventory })
-      .returning({ id: t.variants.id });
-    await tx.insert(t.variantPrices).values(presentmentRows(variant.id, price, compareAt));
-    return product.id;
+  const productId = await insertDraftProduct({
+    ...parsed.data,
+    price: money.price,
+    compareAt: money.compareAt,
+    inventory: money.inventory,
+    sku: null,
   });
+  if (!productId) return { ok: false, error: "Those sections no longer exist. Reload the page." };
 
   redirect(`/admin/products/${productId}?created=1`);
+}
+
+/* ----------------------------------------------------- IMPORT FROM FILE */
+
+const importSchema = z.object({
+  title: z.string().trim().min(2).max(200),
+  summary: z.string().trim().max(500),
+  description: z.string().trim().max(20000),
+  price: z.string().max(20),
+  compareAt: z.string().max(20),
+  inventory: z.number().int().min(0).max(1_000_000),
+  sku: z.string().trim().max(60),
+  categoryId: z.string().min(1),
+});
+
+export type ImportResult = { ok: true; productId: string } | { ok: false; error: string };
+
+/* One product per call, from a row of a listings file read in the browser
+   (lib/listing-import.ts). Photos follow with importProductImageFromUrl, one
+   per call, so no single request runs long enough to hit a hosting timeout. */
+export async function importListing(input: z.input<typeof importSchema>): Promise<ImportResult> {
+  await requireAdmin();
+
+  const parsed = importSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "This row is missing a usable name." };
+  const row = parsed.data;
+
+  const money = parsePriceStock(row.price, row.compareAt, row.inventory);
+  if (!money.ok) return money;
+
+  if (row.sku) {
+    const [existing] = await db
+      .select({ id: t.variants.id })
+      .from(t.variants)
+      .where(eq(t.variants.sku, row.sku))
+      .limit(1);
+    if (existing) return { ok: false, error: `Already in the shop (SKU ${row.sku}).` };
+  }
+
+  const productId = await insertDraftProduct({
+    title: row.title,
+    summary: row.summary,
+    description: row.description,
+    price: money.price,
+    compareAt: money.compareAt,
+    inventory: money.inventory,
+    sku: row.sku || null,
+    categoryIds: [row.categoryId],
+  });
+  if (!productId) return { ok: false, error: "That section no longer exists. Reload the page." };
+
+  revalidatePath("/admin/products");
+  return { ok: true, productId };
+}
+
+/** Which of these SKUs are already in the shop, so the preview can untick
+    them and an import cannot create the same product twice. */
+export async function existingSkus(skus: string[]): Promise<string[]> {
+  await requireAdmin();
+  const wanted = [...new Set(skus.map((s) => s.trim()).filter(Boolean))].slice(0, 2000);
+  if (wanted.length === 0) return [];
+  const rows = await db.select({ sku: t.variants.sku }).from(t.variants).where(inArray(t.variants.sku, wanted));
+  return rows.map((r) => r.sku);
+}
+
+const IMAGE_FETCH_TIMEOUT_MS = 8000;
+
+/* Downloads one photo from a listing (Amazon serves them from its public
+   image CDN) and stores it like an uploaded one. */
+export async function importProductImageFromUrl(productId: string, url: string): Promise<AdminResult> {
+  await requireAdmin();
+
+  let target: URL;
+  try {
+    target = new URL(url);
+  } catch {
+    return { ok: false, error: "Not a valid photo link." };
+  }
+  if (!["https:", "http:"].includes(target.protocol) || isPrivateHost(target.hostname)) {
+    return { ok: false, error: "Not a valid photo link." };
+  }
+
+  let bytes: Uint8Array;
+  try {
+    const response = await fetch(target, {
+      signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS),
+      headers: { Accept: "image/jpeg,image/png,image/webp,image/*;q=0.8" },
+    });
+    if (!response.ok) return { ok: false, error: `The photo could not be downloaded (${response.status}).` };
+    const declared = Number(response.headers.get("content-length") ?? 0);
+    if (declared > MAX_PHOTO_BYTES) return { ok: false, error: "That photo is larger than 4 MB." };
+    bytes = new Uint8Array(await response.arrayBuffer());
+  } catch {
+    return { ok: false, error: "The photo took too long to download." };
+  }
+
+  return saveProductPhoto(productId, bytes);
+}
+
+/* Never let an admin-supplied link reach the hosting provider's own network. */
+function isPrivateHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (process.env.NODE_ENV !== "production") return false;
+  return (
+    host === "localhost" ||
+    host.endsWith(".local") ||
+    host.endsWith(".internal") ||
+    /^(127\.|10\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host) ||
+    host === "::1" ||
+    /^f[cd]|^fe80/.test(host)
+  );
 }
 
 /* ---------------------------------------------------------------- PHOTOS */
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
-const PHOTO_TYPES: Record<string, (b: Uint8Array) => boolean> = {
-  "image/jpeg": (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
-  "image/png": (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47,
-  "image/webp": (b) =>
-    b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
-    b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50,
-};
 
-/* One photo per call. The browser shrinks each photo first and sends them one
-   after another, which keeps every request far below the hosting limits. */
-export async function uploadProductImage(formData: FormData): Promise<AdminResult> {
-  await requireAdmin();
-
-  const productId = String(formData.get("productId") ?? "");
-  const file = formData.get("file");
-  if (!productId || !(file instanceof File)) return { ok: false, error: "No photo was received." };
-  if (file.size === 0 || file.size > MAX_PHOTO_BYTES) {
+/* Stores a photo for a product and appends it to its gallery. The file's own
+   first bytes decide whether it is a JPEG, PNG or WebP, never its name. */
+async function saveProductPhoto(productId: string, bytes: Uint8Array): Promise<AdminResult> {
+  if (bytes.byteLength === 0 || bytes.byteLength > MAX_PHOTO_BYTES) {
     return { ok: false, error: "That photo is too large. Please use one under 4 MB." };
   }
-
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  // Trust the file's own first bytes, not the name or the browser's label.
-  const contentType = Object.keys(PHOTO_TYPES).find((type) => PHOTO_TYPES[type](bytes));
-  if (!contentType) return { ok: false, error: "Please upload a JPG, PNG or WebP photo." };
-
-  const width = clampDimension(Number(formData.get("width")));
-  const height = clampDimension(Number(formData.get("height")));
+  const info = imageInfo(bytes);
+  if (!info) return { ok: false, error: "Please use a JPG, PNG or WebP photo." };
 
   const [product] = await db
     .select({ id: t.products.id, title: t.products.title })
@@ -379,7 +522,7 @@ export async function uploadProductImage(formData: FormData): Promise<AdminResul
   await db.transaction(async (tx) => {
     const [media] = await tx
       .insert(t.productMedia)
-      .values({ contentType, data: bytes, byteSize: bytes.byteLength })
+      .values({ contentType: info.contentType, data: bytes, byteSize: bytes.byteLength })
       .returning({ id: t.productMedia.id });
     const [{ next, count }] = await tx
       .select({
@@ -393,14 +536,27 @@ export async function uploadProductImage(formData: FormData): Promise<AdminResul
       url: `/media/${media.id}`,
       alt: product.title,
       kind: Number(count) === 0 ? "hero" : "lifestyle",
-      width,
-      height,
+      width: clampDimension(info.width),
+      height: clampDimension(info.height),
       position: Number(next),
     });
   });
 
   revalidatePath("/", "layout");
   return { ok: true, message: "Photo added." };
+}
+
+/* One photo per call. The browser shrinks each photo first and sends them one
+   after another, which keeps every request far below the hosting limits. */
+export async function uploadProductImage(formData: FormData): Promise<AdminResult> {
+  await requireAdmin();
+
+  const productId = String(formData.get("productId") ?? "");
+  const file = formData.get("file");
+  if (!productId || !(file instanceof File)) return { ok: false, error: "No photo was received." };
+  if (file.size > MAX_PHOTO_BYTES) return { ok: false, error: "That photo is too large. Please use one under 4 MB." };
+
+  return saveProductPhoto(productId, new Uint8Array(await file.arrayBuffer()));
 }
 
 function clampDimension(value: number): number {
