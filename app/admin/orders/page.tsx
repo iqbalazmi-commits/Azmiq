@@ -30,22 +30,25 @@ export default async function AdminOrdersPage({
   const rows = await db
     .select({
       order: t.orders,
+      // Plain SQL with explicit table aliases: inside a sub-select Drizzle
+      // prints bare column names, so "order_id" = "id" compared each item
+      // with itself and every order showed 0 items.
       itemCount: sql<number>`(
-        select coalesce(sum(${t.orderItems.quantity}), 0)
-        from ${t.orderItems}
-        where ${t.orderItems.orderId} = ${t.orders.id}
+        select coalesce(sum(oi.quantity), 0)
+        from order_items oi
+        where oi.order_id = "orders"."id"
       )`,
       // "Copper Bottle (1L) × 2, Tumbler × 1" - so the list says what to pack
       // without opening every order.
       products: sql<string | null>`(
         select string_agg(
-          ${t.orderItems.productTitle}
-            || case when ${t.orderItems.variantTitle} <> '' then ' (' || ${t.orderItems.variantTitle} || ')' else '' end
-            || ' × ' || ${t.orderItems.quantity},
-          ', ' order by ${t.orderItems.productTitle}
+          oi.product_title
+            || case when oi.variant_title <> '' then ' (' || oi.variant_title || ')' else '' end
+            || ' × ' || oi.quantity,
+          ', ' order by oi.product_title
         )
-        from ${t.orderItems}
-        where ${t.orderItems.orderId} = ${t.orders.id}
+        from order_items oi
+        where oi.order_id = "orders"."id"
       )`,
     })
     .from(t.orders)
