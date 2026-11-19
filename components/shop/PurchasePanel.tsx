@@ -96,7 +96,7 @@ export function PurchasePanel({ product }: { product: CatalogueProduct }) {
             <legend className="eyebrow mb-3">
               {product.variants.some((v) => v.capacityMl)
                 ? "Capacity"
-                : product.categorySlugs.includes("leather-jackets")
+                : product.categorySlugs.some((s) => s === "leather-jackets" || s === "shoes")
                   ? "Size"
                   : "Option"}
             </legend>
