@@ -587,7 +587,7 @@ export const CATALOGUE: SeedProduct[] = [
   },
   {
     slug: "kolhapuri-chappal",
-    title: "Sahyadri · Men's Handcrafted Kolhapuri Chappal",
+    title: "Kolhapuri Chappal for Men · Sahyadri Heritage, Handcrafted Leather",
     seoTitle: "Kolhapuri Chappal for Men | Handmade Leather Sandals",
     subtitle: "Made by hand. Worn with pride.",
     summary: "A classic men's Kolhapuri in leather, hand-stitched with a braided toe ring. In natural, tan and brown.",
@@ -633,7 +633,7 @@ export const CATALOGUE: SeedProduct[] = [
   },
   {
     slug: "ladies-kolhapuri-chappal",
-    title: "Sahyadri Belle · Women's Handcrafted Kolhapuri Chappal",
+    title: "Kolhapuri Chappal for Women · Sahyadri Belle, Handcrafted Leather",
     seoTitle: "Kolhapuri Chappal for Women | Handmade Leather Sandals",
     subtitle: "Light on the foot. Rich in heritage.",
     summary: "A slim women's Kolhapuri in tan leather, hand-stitched with a braided toe ring and a medallion strap.",
