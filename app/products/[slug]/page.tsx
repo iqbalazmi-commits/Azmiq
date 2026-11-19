@@ -62,7 +62,10 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   ]);
   const related = relatedProducts(all, product);
 
-  const isApparel = product.categorySlugs.includes("leather-jackets");
+  const isShoes = product.categorySlugs.includes("shoes");
+  const isApparel = isShoes || product.categorySlugs.includes("leather-jackets");
+  // Shoe options read "Natural · UK 8"; the spec table lists each size once.
+  const sizeList = [...new Set(product.variants.map((v) => v.title.split(" · ").pop()))].join(", ");
 
   const primaryCategory = product.categorySlugs[0];
   const categoryTitle = primaryCategory
@@ -116,7 +119,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
                   { Icon: Truck, text: "£5 UK delivery, free over £50" },
                   { Icon: RotateCcw, text: "14-day returns, free" },
                   { Icon: PackageCheck, text: "Genuine leather" },
-                  { Icon: Leaf, text: "Ships in a protective bag" },
+                  { Icon: Leaf, text: isShoes ? "Stitched by hand" : "Ships in a protective bag" },
                 ]
               : [
                   { Icon: Truck, text: "£5 UK delivery, free over £50" },
@@ -151,7 +154,15 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <h2 className="font-serif text-2xl text-ink">Specification</h2>
             <hr className="rule-accent my-5" />
             <dl className="divide-y divide-border border-y border-border">
-              {(isApparel
+              {(isShoes
+                ? [
+                    ["Material", product.material],
+                    ["Finish", product.finish],
+                    ["Sizes", sizeList],
+                    ["Weight", product.weightGrams ? `${product.weightGrams}g` : null],
+                    ["Made", "Cut, stitched and braided by hand"],
+                  ]
+                : isApparel
                 ? [
                     ["Material", product.material],
                     ["Finish", product.finish],

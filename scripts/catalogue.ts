@@ -10,6 +10,11 @@
    The 3 leather jackets are authored in the build script. All imagery lives in
    public/images/products/<slug>/. Edit products in the admin panel once the
    site is running; re-running the build overwrites this file.
+
+   Hand edits since the last build (carry them over if you rebuild): the
+   rebranded names, the photo refresh (removed and reordered gallery images)
+   and the Shoes category with its two Kolhapuri chappals, seeded as drafts.
+   Live databases get the same changes from db/migrations.
    =========================================================================== */
 
 export type SeedVariant = {
@@ -49,6 +54,8 @@ export type SeedProduct = {
   leakProof: boolean;
   categories: string[];
   featured?: boolean;
+  /** Seeded as "active" unless set; new lines start as drafts. */
+  status?: "draft" | "active";
   position: number;
   images: SeedImage[];
   variants: SeedVariant[];
@@ -59,6 +66,8 @@ const COPPER_CARE = "Hand wash only, in warm water with a little mild soap. Copp
 const ACACIA_CARE = "Hand wash in warm soapy water and dry immediately — never leave acacia to soak, and never put it in a dishwasher.\n\nEvery few weeks, rub in a thin coat of food-safe mineral oil with a soft cloth, leave it overnight and wipe away the excess. This keeps the grain sealed and stops it drying out or splitting.";
 
 const LEATHER_CARE = "Genuine leather is a natural material and softens and develops a patina with wear — that is the point of it.\n\nWipe with a dry or barely damp cloth. Every few months, work a small amount of leather conditioner in with a soft cloth and buff off the excess. Keep it away from prolonged rain and direct heat; if it does get wet, let it dry naturally, away from a radiator.\n\nStore on a wide or padded hanger so the shoulders hold their shape. Do not wash, tumble dry or dry-clean.";
+
+const KOLHAPURI_CARE = "Wipe with a soft, dry cloth after wearing. Kolhapuri leather is a natural material: it softens and moulds to your foot with wear, and darkens a little with age.\n\nKeep them out of heavy rain. If they get wet, stuff them with paper and let them dry naturally, away from a radiator or direct sun. Every couple of months, rub in a little leather conditioner or a drop of coconut oil with a soft cloth.\n\nThe first few wears can feel firm while the leather breaks in; that is normal.";
 
 export const CATEGORIES = [
   {
@@ -97,6 +106,12 @@ export const CATEGORIES = [
     subtitle: "Genuine leather, made to last",
     description: "Genuine leather outerwear in clean, modern cuts — a café-racer jacket for men, and belted double-breasted trenches for women in black and deep burgundy. Full-grain hide, a soft full lining, a tailored fit. Five sizes, S to XXL.",
   },
+  {
+    slug: "shoes",
+    title: "Shoes",
+    subtitle: "Kolhapuri chappals, handmade",
+    description: "Kolhapuri chappals for men and women: open-toe leather sandals cut, stitched and braided by hand in the tradition of Kolhapur, India. Comfortable on a hot day, smart enough for a wedding.",
+  },
 ];
 
 export const CATALOGUE: SeedProduct[] = [
@@ -121,7 +136,6 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/azmiq-pure-copper-balls-handmade-with-cotton-pouch/03-ball4.png", alt: "AZMIQ Pure Copper Balls – Handmade with Cotton Pouch shown for scale", kind: "scale", width: 354, height: 518 },
       { file: "/images/products/azmiq-pure-copper-balls-handmade-with-cotton-pouch/04-ball5.png", alt: "AZMIQ Pure Copper Balls – Handmade with Cotton Pouch — view 5", kind: "gallery", width: 384, height: 517 },
       { file: "/images/products/azmiq-pure-copper-balls-handmade-with-cotton-pouch/05-ball7.png", alt: "AZMIQ Pure Copper Balls – Handmade with Cotton Pouch — view 6", kind: "gallery", width: 407, height: 498 },
-      { file: "/images/products/azmiq-pure-copper-balls-handmade-with-cotton-pouch/06-ball6.png", alt: "AZMIQ Pure Copper Balls – Handmade with Cotton Pouch — view 7", kind: "gallery", width: 1536, height: 1024 },
     ],
     variants: [
       { sku: "AZMIQ-PURCOPBALHANWITCOTPO", title: "Standard", priceGbp: 2500, compareAtGbp: 3500, inventory: 40 },
@@ -152,9 +166,7 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/azmiq-pure-copper-water-bottle-500ml/04-pomelli_photoshoot-2.png", alt: "AZMIQ Pure Copper Water Bottle 500ml — view 5", kind: "gallery", width: 768, height: 1365 },
       { file: "/images/products/azmiq-pure-copper-water-bottle-500ml/05-pomelli_photoshoot-3.png", alt: "AZMIQ Pure Copper Water Bottle 500ml — view 6", kind: "gallery", width: 768, height: 1365 },
       { file: "/images/products/azmiq-pure-copper-water-bottle-500ml/06-pomelli_photoshoot-4.png", alt: "AZMIQ Pure Copper Water Bottle 500ml — view 7", kind: "gallery", width: 768, height: 1365 },
-      { file: "/images/products/azmiq-pure-copper-water-bottle-500ml/07-dual4.jpg", alt: "AZMIQ Pure Copper Water Bottle 500ml — view 8", kind: "gallery", width: 1024, height: 1024 },
       { file: "/images/products/azmiq-pure-copper-water-bottle-500ml/08-copper_oxidation.png", alt: "AZMIQ Pure Copper Water Bottle 500ml — view 9", kind: "gallery", width: 1254, height: 1254 },
-      { file: "/images/products/azmiq-pure-copper-water-bottle-500ml/09-gemini_generated_image_ipc8vipc8vipc8vi.png", alt: "AZMIQ Pure Copper Water Bottle 500ml — view 10", kind: "gallery", width: 2048, height: 2048 },
     ],
     variants: [
       { sku: "AZMIQ-CWB-500", title: "Standard", capacityMl: 500, priceGbp: 2500, compareAtGbp: 3200, inventory: 40 },
@@ -204,11 +216,12 @@ export const CATALOGUE: SeedProduct[] = [
     categories: ["kitchen-utensils"],
     position: 3,
     images: [
+      { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/11-sooonnew3.jpg", alt: "Acacia wood kitchen utensil set standing in its matching holder on a kitchen worktop", kind: "hero", width: 848, height: 568 },
+      { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/12-sooonnew7.jpg", alt: "The acacia utensils in their holder beside a chopping board and herbs", kind: "lifestyle", width: 499, height: 459 },
+      { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/13-spoongreen.jpg", alt: "Acacia spoons and spatulas in their wooden holder, photographed in a garden", kind: "lifestyle", width: 1200, height: 1600 },
       { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/00-sooonnew5.png", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece, photographed on warm linen", kind: "hero", width: 515, height: 443 },
-      { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/01-sooonnew1.png", alt: "Close-up of the surface texture on the Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece", kind: "macro", width: 1536, height: 1024 },
       { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/02-sooonnew4.png", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece in use", kind: "lifestyle", width: 695, height: 559 },
       { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/03-sooonnew6.png", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece shown for scale", kind: "scale", width: 512, height: 455 },
-      { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/04-spoon_new8.png", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece — view 5", kind: "gallery", width: 1536, height: 1024 },
       { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/05-spoon105.jpg", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece — view 6", kind: "gallery", width: 1024, height: 559 },
       { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/06-spoon107.jpg", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece — view 7", kind: "gallery", width: 1024, height: 683 },
       { file: "/images/products/azmiq-acacia-wood-kitchen-utensil-set-10-piece-with-holder/07-spoon108.jpg", alt: "Azmiq Acacia Wood Kitchen Utensil Set – 10 Piece — view 8", kind: "gallery", width: 1024, height: 683 },
@@ -323,16 +336,10 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/ayurvedic-copper-water-set/01-jugcombo.png", alt: "Close-up of the surface texture on the Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift", kind: "macro", width: 1024, height: 1536 },
       { file: "/images/products/ayurvedic-copper-water-set/02-jugphoto2.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift in use", kind: "lifestyle", width: 1024, height: 1536 },
       { file: "/images/products/ayurvedic-copper-water-set/03-glass.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift shown for scale", kind: "scale", width: 399, height: 672 },
-      { file: "/images/products/ayurvedic-copper-water-set/04-jug_combo.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 5", kind: "gallery", width: 1024, height: 1536 },
-      { file: "/images/products/ayurvedic-copper-water-set/05-jug_photo_2.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 6", kind: "gallery", width: 1024, height: 1536 },
       { file: "/images/products/ayurvedic-copper-water-set/06-jug_bottle.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 7", kind: "gallery", width: 372, height: 334 },
       { file: "/images/products/ayurvedic-copper-water-set/07-jug.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 8", kind: "gallery", width: 377, height: 672 },
       { file: "/images/products/ayurvedic-copper-water-set/08-1mqjarr4bqrxmtup3qmwkas_0_gps_generated.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 9", kind: "gallery", width: 1024, height: 1024 },
-      { file: "/images/products/ayurvedic-copper-water-set/09-1mqjarr4bqrxmtup3qmwkas_1_gps_generated.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 10", kind: "gallery", width: 1024, height: 1024 },
       { file: "/images/products/ayurvedic-copper-water-set/10-1mqjarr4bqrxmtup3qmwkas_2_gps_generated.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 11", kind: "gallery", width: 1024, height: 1024 },
-      { file: "/images/products/ayurvedic-copper-water-set/11-1mqjarr4bqrxmtup3qmwkas_3_gps_generated.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 12", kind: "gallery", width: 1024, height: 1024 },
-      { file: "/images/products/ayurvedic-copper-water-set/12-copper_oxidation.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 13", kind: "gallery", width: 1254, height: 1254 },
-      { file: "/images/products/ayurvedic-copper-water-set/13-gemini_generated_image_ipc8vipc8vipc8vi_adb4d432-77c0-4399-a492-b6552f565aac.png", alt: "Ayurvedic Copper Water Set — Handcrafted Pure Copper Jug (1.1L), Bottle & 2 Glasses | Natural Hydration Wellness Gift — view 14", kind: "gallery", width: 2048, height: 2048 },
     ],
     variants: [
       { sku: "AZMIQ-AYUCOPWATSET", title: "Standard", capacityMl: 1100, priceGbp: 5900, compareAtGbp: 6900, inventory: 40 },
@@ -360,14 +367,12 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/pure-copper-water-bottle/03-matt1.jpg", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration shown for scale", kind: "scale", width: 1024, height: 1024 },
       { file: "/images/products/pure-copper-water-bottle/04-matt4.jpg", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 5", kind: "gallery", width: 1024, height: 1024 },
       { file: "/images/products/pure-copper-water-bottle/05-matt8.jpg", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 6", kind: "gallery", width: 908, height: 1024 },
-      { file: "/images/products/pure-copper-water-bottle/06-gemini_generated_image_ipc8vipc8vipc8vi_f14a2b7a-790b-42ae-87d1-229a3fd1af53.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 7", kind: "gallery", width: 2048, height: 2048 },
-      { file: "/images/products/pure-copper-water-bottle/07-copper_oxidation_79ae5e9b-795e-4c11-ae84-edef8635010f.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 8", kind: "gallery", width: 1254, height: 1254 },
       { file: "/images/products/pure-copper-water-bottle/08-mattplain_1.jpg", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 9", kind: "gallery", width: 794, height: 896 },
       { file: "/images/products/pure-copper-water-bottle/09-1-photoroom_1.jpg", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 10", kind: "gallery", width: 794, height: 896 },
       { file: "/images/products/pure-copper-water-bottle/10-chatgpt_image_sep_27_2025_10_22_24_pm.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 11", kind: "gallery", width: 1024, height: 1536 },
       { file: "/images/products/pure-copper-water-bottle/11-matte-copper-water-bottle.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 12", kind: "gallery", width: 1024, height: 1024 },
-      { file: "/images/products/pure-copper-water-bottle/12-copper_2.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 13", kind: "gallery", width: 1024, height: 1536 },
       { file: "/images/products/pure-copper-water-bottle/13-plain_copper.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 14", kind: "gallery", width: 1024, height: 1536 },
+      { file: "/images/products/pure-copper-water-bottle/07-copper_oxidation_79ae5e9b-795e-4c11-ae84-edef8635010f.png", alt: "Pure Copper Water Bottle with Matte Finish & Leak-Proof Lid - Ayurvedic-Inspired Hydration — view 8", kind: "gallery", width: 1254, height: 1254 },
     ],
     variants: [
       { sku: "AZMIQ-PURCOPWATBOT", title: "Standard", priceGbp: 3200, compareAtGbp: 3499, inventory: 40 },
@@ -418,10 +423,7 @@ export const CATALOGUE: SeedProduct[] = [
     images: [
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/00-hammered_copper_new7.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design, photographed on warm linen", kind: "hero", width: 1024, height: 1024 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/01-hammered_copper_bottle.webp", alt: "Close-up of the surface texture on the Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design", kind: "macro", width: 1588, height: 1588 },
-      { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/02-copper_oxidation_79ae5e9b-795e-4c11-ae84-edef8635010f.png", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design in use", kind: "lifestyle", width: 1254, height: 1254 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/03-hammered_copper_new2.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design shown for scale", kind: "scale", width: 1024, height: 1024 },
-      { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/04-gemini_generated_image_ipc8vipc8vipc8vi_adb4d432-77c0-4399-a492-b6552f565aac.png", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 5", kind: "gallery", width: 2048, height: 2048 },
-      { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/05-hammered_copper_new6.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 6", kind: "gallery", width: 1080, height: 1080 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/06-hammered_copper_new1.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 7", kind: "gallery", width: 1024, height: 1024 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/07-newhammered.png", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 8", kind: "gallery", width: 1024, height: 1536 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/08-hammerred_copper2.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 9", kind: "gallery", width: 388, height: 1280 },
@@ -430,7 +432,7 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/11-hammerred_copper1.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 12", kind: "gallery", width: 520, height: 1367 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/12-hammerred_copper3.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 13", kind: "gallery", width: 1080, height: 1084 },
       { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/13-hammerred_copper4.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 14", kind: "gallery", width: 1500, height: 1500 },
-      { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/14-all_bottles.jpg", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design — view 15", kind: "gallery", width: 681, height: 1024 },
+      { file: "/images/products/premium-handcrafted-hammered-copper-water-bottle-leak-proof-rust-resistant/02-copper_oxidation_79ae5e9b-795e-4c11-ae84-edef8635010f.png", alt: "Hammered Copper Water Bottle – Handcrafted 100% Pure Copper, Leak‑Proof Design in use", kind: "lifestyle", width: 1254, height: 1254 },
     ],
     variants: [
       { sku: "AZMIQ-PREHANHAMCOPWATBOTLE", title: "Standard", priceGbp: 3500, compareAtGbp: 4000, inventory: 40 },
@@ -456,7 +458,6 @@ export const CATALOGUE: SeedProduct[] = [
       { file: "/images/products/premium-dual-hammered-copper-water-bottle-100-pure-copper-ayurvedic-health-benefits-leak-proof-eco-friendly-design-950ml/00-premium-dual-hammered-copper-water-bottle.png", alt: "Dual Hammered Copper Water Bottle (950ml) - 100% Pure Copper, Leak-Proof, Handcrafted, photographed on warm linen", kind: "hero", width: 1024, height: 1024 },
       { file: "/images/products/premium-dual-hammered-copper-water-bottle-100-pure-copper-ayurvedic-health-benefits-leak-proof-eco-friendly-design-950ml/01-dual_tone_bottle_300x300_e2b2b7de-9c0d-4605-ba0c-568305bfda7c.png", alt: "Close-up of the surface texture on the Dual Hammered Copper Water Bottle (950ml) - 100% Pure Copper, Leak-Proof, Handcrafted", kind: "macro", width: 300, height: 300 },
       { file: "/images/products/premium-dual-hammered-copper-water-bottle-100-pure-copper-ayurvedic-health-benefits-leak-proof-eco-friendly-design-950ml/02-dual_bottle_white_background.png", alt: "Dual Hammered Copper Water Bottle (950ml) - 100% Pure Copper, Leak-Proof, Handcrafted in use", kind: "lifestyle", width: 1024, height: 1024 },
-      { file: "/images/products/premium-dual-hammered-copper-water-bottle-100-pure-copper-ayurvedic-health-benefits-leak-proof-eco-friendly-design-950ml/03-copper_bottle_infographic.jpg", alt: "Dual Hammered Copper Water Bottle (950ml) - 100% Pure Copper, Leak-Proof, Handcrafted shown for scale", kind: "scale", width: 1024, height: 1536 },
       { file: "/images/products/premium-dual-hammered-copper-water-bottle-100-pure-copper-ayurvedic-health-benefits-leak-proof-eco-friendly-design-950ml/04-dualtonebottle.png", alt: "Dual Hammered Copper Water Bottle (950ml) - 100% Pure Copper, Leak-Proof, Handcrafted — view 5", kind: "gallery", width: 1024, height: 1024 },
     ],
     variants: [
@@ -509,6 +510,9 @@ export const CATALOGUE: SeedProduct[] = [
     featured: true,
     position: 13,
     images: [
+      { file: "/images/products/mens-leather-jacket/04-studio.jpg", alt: "Men's black leather café-racer jacket with a stand collar and silver zips, studio view", kind: "hero", width: 1024, height: 1536 },
+      { file: "/images/products/mens-leather-jacket/05-street.jpg", alt: "The black leather jacket worn open over a grey tee on a cobbled street", kind: "lifestyle", width: 1024, height: 1024 },
+      { file: "/images/products/mens-leather-jacket/06-back.jpg", alt: "Back view of the black leather jacket, showing the shoulder seams and hem", kind: "lifestyle", width: 1024, height: 1024 },
       { file: "/images/products/mens-leather-jacket/00-hero.png", alt: "Men's black leather jacket, front view on a plain ground", kind: "hero", width: 1024, height: 1536 },
       { file: "/images/products/mens-leather-jacket/01-flat.jpg", alt: "The jacket laid flat, showing the cut, collar and zip hardware", kind: "gallery", width: 1600, height: 1192 },
       { file: "/images/products/mens-leather-jacket/02-brand.png", alt: "AZMIQ leather — crafted for confidence, durability and refined style", kind: "lifestyle", width: 512, height: 512 },
@@ -579,6 +583,83 @@ export const CATALOGUE: SeedProduct[] = [
       { sku: "AZMIQ-WLT-BUR-L", title: "L", priceGbp: 15000, inventory: 20 },
       { sku: "AZMIQ-WLT-BUR-XL", title: "XL", priceGbp: 15000, inventory: 20 },
       { sku: "AZMIQ-WLT-BUR-XXL", title: "XXL", priceGbp: 15000, inventory: 20 },
+    ],
+  },
+  {
+    slug: "kolhapuri-chappal",
+    title: "Sahyadri Heritage · Men's Handcrafted Leather Kolhapuri Chappal",
+    seoTitle: "Kolhapuri Chappal for Men | Handmade Leather Sandals",
+    subtitle: "Made by hand. Worn with pride.",
+    summary: "A classic men's Kolhapuri in leather, hand-stitched with a braided toe ring. In natural, tan and brown.",
+    description: "The Kolhapuri is India's most famous sandal: a flat leather sole, a wide hand-punched upper strap and a braided toe ring, made by families of artisans who have shaped it for generations.\n\n\n• Leather upper and sole, stitched by hand\n\n• Hand-punched and braided detailing on the strap\n\n• Braided toe loop for a secure, barefoot feel\n\n• Natural, tan or brown\n\n• Wear with linen trousers, jeans or a kurta\n\nEvery pair is made by hand, so the colour, punching and stitching vary a little from one to the next. The leather softens and shapes to your foot as you wear it.",
+    careInstructions: KOLHAPURI_CARE,
+    material: "Leather",
+    foodGrade: false,
+    finish: "Hand-stitched leather",
+    dimensions: null,
+    weightGrams: null,
+    leakProof: false,
+    categories: ["shoes"],
+    status: "draft",
+    position: 16,
+    images: [
+      { file: "/images/products/kolhapuri-chappal/00-tan-studio.jpg", alt: "A pair of tan Kolhapuri chappals with gold-thread detailing, from above", kind: "hero", width: 853, height: 1280 },
+      { file: "/images/products/kolhapuri-chappal/01-natural-worn.jpg", alt: "Natural Kolhapuri chappals worn with linen trousers", kind: "lifestyle", width: 378, height: 687 },
+      { file: "/images/products/kolhapuri-chappal/02-brown-top-and-sole.jpg", alt: "Brown Kolhapuri chappal from above beside its leather sole", kind: "gallery", width: 1216, height: 1567 },
+      { file: "/images/products/kolhapuri-chappal/03-brown-single.jpg", alt: "A single brown Kolhapuri chappal showing the braided strap and toe ring", kind: "gallery", width: 899, height: 1599 },
+      { file: "/images/products/kolhapuri-chappal/04-natural-heritage.jpg", alt: "Natural leather Kolhapuri chappals on a stone ledge", kind: "gallery", width: 668, height: 687 },
+      { file: "/images/products/kolhapuri-chappal/05-craftsmanship.jpg", alt: "The stitched leather sole and an artisan hand-making a Kolhapuri", kind: "gallery", width: 489, height: 546 },
+    ],
+    variants: [
+      { sku: "AZMIQ-KOLM-NAT-6", title: "Natural · UK 6", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-NAT-7", title: "Natural · UK 7", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-NAT-8", title: "Natural · UK 8", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-NAT-9", title: "Natural · UK 9", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-NAT-10", title: "Natural · UK 10", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-NAT-11", title: "Natural · UK 11", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-TAN-6", title: "Tan · UK 6", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-TAN-7", title: "Tan · UK 7", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-TAN-8", title: "Tan · UK 8", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-TAN-9", title: "Tan · UK 9", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-TAN-10", title: "Tan · UK 10", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-TAN-11", title: "Tan · UK 11", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-BRO-6", title: "Brown · UK 6", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-BRO-7", title: "Brown · UK 7", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-BRO-8", title: "Brown · UK 8", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-BRO-9", title: "Brown · UK 9", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-BRO-10", title: "Brown · UK 10", priceGbp: 4500, inventory: 0 },
+      { sku: "AZMIQ-KOLM-BRO-11", title: "Brown · UK 11", priceGbp: 4500, inventory: 0 },
+    ],
+  },
+  {
+    slug: "ladies-kolhapuri-chappal",
+    title: "Sahyadri Belle · Women's Handcrafted Leather Kolhapuri Chappal",
+    seoTitle: "Kolhapuri Chappal for Women | Handmade Leather Sandals",
+    subtitle: "Light on the foot. Rich in heritage.",
+    summary: "A slim women's Kolhapuri in tan leather, hand-stitched with a braided toe ring and a medallion strap.",
+    description: "A lighter, slimmer take on the Kolhapuri: a narrow leather strap with a hand-tooled medallion, a braided toe ring and a flat leather sole, made by hand in the Kolhapur tradition.\n\n\n• Leather upper and sole, stitched by hand\n\n• Slim strap with a hand-tooled medallion\n\n• Braided toe loop\n\n• Pairs with a summer dress, jeans or a salwar suit\n\nEvery pair is made by hand, so small variations in colour and stitching are part of its character. The leather softens with wear.",
+    careInstructions: KOLHAPURI_CARE,
+    material: "Leather",
+    foodGrade: false,
+    finish: "Hand-stitched leather",
+    dimensions: null,
+    weightGrams: null,
+    leakProof: false,
+    categories: ["shoes"],
+    status: "draft",
+    position: 17,
+    images: [
+      { file: "/images/products/ladies-kolhapuri-chappal/00-tan-steps.jpg", alt: "Women's tan Kolhapuri chappals worn with jeans on stone steps", kind: "hero", width: 559, height: 678 },
+      { file: "/images/products/ladies-kolhapuri-chappal/01-tan-seated.jpg", alt: "Tan Kolhapuri chappals worn with an embroidered dress", kind: "lifestyle", width: 561, height: 728 },
+      { file: "/images/products/ladies-kolhapuri-chappal/02-tan-close.jpg", alt: "Close view of the tan Kolhapuri's medallion strap and braided toe ring", kind: "lifestyle", width: 559, height: 662 },
+    ],
+    variants: [
+      { sku: "AZMIQ-KOLW-TAN-3", title: "UK 3", priceGbp: 3900, inventory: 0 },
+      { sku: "AZMIQ-KOLW-TAN-4", title: "UK 4", priceGbp: 3900, inventory: 0 },
+      { sku: "AZMIQ-KOLW-TAN-5", title: "UK 5", priceGbp: 3900, inventory: 0 },
+      { sku: "AZMIQ-KOLW-TAN-6", title: "UK 6", priceGbp: 3900, inventory: 0 },
+      { sku: "AZMIQ-KOLW-TAN-7", title: "UK 7", priceGbp: 3900, inventory: 0 },
+      { sku: "AZMIQ-KOLW-TAN-8", title: "UK 8", priceGbp: 3900, inventory: 0 },
     ],
   },
 ];

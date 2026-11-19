@@ -80,7 +80,7 @@ async function main() {
         leakProof: item.leakProof,
         foodGrade: item.foodGrade ?? true,
         handcrafted: true,
-        status: "active",
+        status: item.status ?? "active",
         featured: item.featured ?? false,
         position: index,
         seoTitle: item.seoTitle,
