@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { Download } from "lucide-react";
 import { db } from "@/db";
 import * as t from "@/db/schema";
 import { requireAdminPage } from "@/lib/admin";
@@ -26,6 +27,10 @@ export default async function AdminOrdersPage({
   await requireAdminPage();
   const params = await searchParams;
   const filter = typeof params.status === "string" ? params.status : "all";
+  // From the Customers page: one person's orders, matched case-insensitively.
+  const email = typeof params.email === "string" ? params.email.trim().toLowerCase().slice(0, 200) : "";
+  // The month input's default: this month, in UK time.
+  const thisMonth = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(new Date()).slice(0, 7);
 
   const rows = await db
     .select({
@@ -52,7 +57,12 @@ export default async function AdminOrdersPage({
       )`,
     })
     .from(t.orders)
-    .where(filter === "all" ? undefined : eq(t.orders.status, filter))
+    .where(
+      and(
+        filter === "all" ? undefined : eq(t.orders.status, filter),
+        email ? sql`lower(${t.orders.email}) = ${email}` : undefined,
+      ),
+    )
     .orderBy(desc(t.orders.createdAt))
     .limit(200);
 
@@ -65,6 +75,54 @@ export default async function AdminOrdersPage({
       </p>
       <hr className="rule-accent mt-6" />
 
+      <form
+        action="/admin/orders/export"
+        method="get"
+        className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-surface-raised p-4"
+      >
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="export-month" className="text-sm font-medium text-ink">
+            Download orders as a spreadsheet
+          </label>
+          <input
+            id="export-month"
+            name="month"
+            type="month"
+            defaultValue={thisMonth}
+            max={thisMonth}
+            className="h-11 rounded-md border border-border-control bg-surface px-3 text-base text-ink"
+          />
+        </div>
+        <button
+          type="submit"
+          className="inline-flex h-11 items-center gap-2 rounded-md bg-surface-brand px-5 text-sm font-medium text-ink-on-brand hover:bg-surface-brand-hover"
+        >
+          <Download size={16} aria-hidden="true" />
+          Download month
+        </button>
+        {/* A file download, not a page: a plain link, so Next does not try to route to it. */}
+        <a
+          href="/admin/orders/export?month=all"
+          download
+          className="inline-flex h-11 items-center text-sm text-ink-brand underline underline-offset-4"
+        >
+          or every order ever
+        </a>
+        <p className="w-full text-xs text-ink-muted">
+          Paid, shipped and refunded orders, with VAT and refunds, as a CSV file that opens in Excel,
+          Numbers or Google Sheets. Handy for your accountant.
+        </p>
+      </form>
+
+      {email ? (
+        <p className="mt-6 flex flex-wrap items-center gap-3 rounded-md bg-surface-brand-wash px-4 py-3 text-sm text-ink">
+          Showing orders for <strong>{email}</strong>
+          <Link href="/admin/orders" className="text-ink-brand underline underline-offset-4">
+            Show everyone
+          </Link>
+        </p>
+      ) : null}
+
       <nav aria-label="Filter orders" className="mt-6">
         <ul className="flex flex-wrap gap-2">
           {FILTERS.map((option) => {
@@ -72,7 +130,10 @@ export default async function AdminOrdersPage({
             return (
               <li key={option.value}>
                 <Link
-                  href={option.value === "all" ? "/admin/orders" : `/admin/orders?status=${option.value}`}
+                  href={`/admin/orders?${new URLSearchParams({
+                    ...(option.value === "all" ? {} : { status: option.value }),
+                    ...(email ? { email } : {}),
+                  })}`}
                   aria-current={active ? "true" : undefined}
                   className={
                     "inline-block rounded-pill px-4 py-2 text-sm transition-colors " +

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  ArrowLeftRight, BadgePercent, Boxes, CreditCard, LayoutDashboard, LogOut,
-  MessageSquareQuote, Package, RotateCcw,
+  ArrowLeftRight, BadgePercent, Boxes, ChartColumn, CreditCard, LayoutDashboard, LogOut,
+  MessageSquareQuote, Package, RotateCcw, Users,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/auth";
 import { signOutAdmin } from "@/lib/actions/auth";
@@ -18,6 +18,8 @@ export const dynamic = "force-dynamic";
 const NAV = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", Icon: Package },
+  { href: "/admin/sales", label: "Sales", Icon: ChartColumn },
+  { href: "/admin/customers", label: "Customers", Icon: Users },
   { href: "/admin/products", label: "Products", Icon: Boxes },
   { href: "/admin/inventory", label: "Stock", Icon: Boxes },
   { href: "/admin/discounts", label: "Discounts", Icon: BadgePercent },
