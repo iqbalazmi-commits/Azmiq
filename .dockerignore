@@ -1,0 +1,12 @@
+.git
+node_modules
+.next
+.pgdata
+.env
+.env.local
+.netlify
+.vercel
+backups
+shopify-theme
+*.tsbuildinfo
+npm-debug.log*

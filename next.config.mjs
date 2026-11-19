@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // The Docker image (Dockerfile) sets NEXT_OUTPUT=standalone to get a small
+  // self-contained server. Netlify's adapter does its own packaging, so the
+  // normal output is kept everywhere else.
+  ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" } : {}),
   poweredByHeader: false,
   // Pin the workspace root. Without this, an unrelated package-lock.json in a
   // parent directory (e.g. the user's home folder) makes Turbopack infer the
