@@ -43,6 +43,13 @@
       "when": 1795114584264,
       "tag": "0005_photo_refresh_and_shoes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795116656263,
+      "tag": "0006_order_follow_up_emails",
+      "breakpoints": true
     }
   ]
 }

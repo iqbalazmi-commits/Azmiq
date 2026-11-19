@@ -32,7 +32,7 @@ export const CONTENT: Record<string, ContentPage> = {
   privacy: {
     title: "Privacy policy",
     description: "What data AZMIQ collects, why, and how to get it back or removed.",
-    updated: LAST_UPDATED,
+    updated: "19 November 2026",
     sections: [
       {
         body: [
@@ -42,10 +42,11 @@ export const CONTENT: Record<string, ContentPage> = {
       },
       {
         heading: "What we collect and why",
-        body: ["We hold personal data in five situations, each with its own lawful basis under the UK GDPR."],
+        body: ["We hold personal data in six situations, each with its own lawful basis under the UK GDPR."],
         list: [
           "When you place an order: your name, email, delivery address, phone number if you give one, and what you bought. Lawful basis: performance of a contract. We cannot ship an order without it.",
           "When you start checkout but do not finish: your email and what was in your basket, so we can send one reminder with a link back to it. Lawful basis: legitimate interests, under the soft opt-in rules for someone part-way through a purchase. We never send a second reminder, and every reminder has a one-click way to stop them for good.",
+          "After your order ships: we email you once when it leaves us, with tracking, and once about ten days later to ask whether you would like to review what you bought. Lawful basis: performance of a contract for the delivery update, and legitimate interests for the review request, which has a one-click way to stop it. We never offer anything in return for a review.",
           "When you pay: nothing. Card details go directly to Stripe and never reach our servers. We store only Stripe's reference for the payment, so we can issue a refund.",
           "When you subscribe to emails: your email address, and which emails you opened. Lawful basis: consent, which you can withdraw in one click from any email.",
           "When you browse with analytics accepted: pages viewed and products looked at, through Google Analytics. Lawful basis: consent. Decline the cookie banner and none of it is collected.",

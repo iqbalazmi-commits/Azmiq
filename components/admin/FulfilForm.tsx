@@ -54,6 +54,12 @@ export function FulfilForm({
         </div>
       </div>
 
+      {!fulfilled ? (
+        <p className="text-sm text-ink-muted">
+          The customer is emailed once, when you mark it as shipped, so add the tracking details first.
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-4">
         <Button type="submit" disabled={pending}>
           {pending ? (

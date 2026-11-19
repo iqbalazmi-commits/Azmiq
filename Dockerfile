@@ -39,7 +39,7 @@ RUN groupadd --system --gid 1001 app && useradd --system --uid 1001 --gid app ap
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
-COPY --from=build --chown=app:app /app/scripts/cron-basket-recovery.mjs ./scripts/cron-basket-recovery.mjs
+COPY --from=build --chown=app:app /app/scripts/cron-daily.mjs ./scripts/cron-daily.mjs
 USER app
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

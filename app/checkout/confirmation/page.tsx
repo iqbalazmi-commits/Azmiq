@@ -9,6 +9,7 @@ import { formatMoney, type Currency } from "@/lib/money";
 import { bankDetails, transferReference } from "@/lib/bank-transfer";
 import { ConversionTracking } from "@/components/shop/ConversionTracking";
 import { CartCountSync } from "@/components/shop/CookieSync";
+import { InstagramFollowPrompt } from "@/components/shop/InstagramFollowPrompt";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
@@ -93,6 +94,15 @@ export default async function ConfirmationPage({
           transactionId={String(order.number)}
           value={order.grandTotal / 100}
           currency={currency}
+        />
+      ) : null}
+
+      {/* Not for bank transfers: that page carries the payment details the
+          customer still needs, and a pop-up would sit on top of them. */}
+      {!awaitingTransfer ? (
+        <InstagramFollowPrompt
+          orderNumber={order.number}
+          firstName={address?.name?.trim().split(/\s+/)[0] ?? null}
         />
       ) : null}
 

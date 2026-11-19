@@ -35,8 +35,8 @@ Then open `http://<server-ip>:8000` and create your Coolify admin account.
 4. **Domains**: `https://azmiq.com,https://www.azmiq.com`. Coolify gets the HTTPS certificate itself.
 5. **Deploy**. Pushes to `main` redeploy automatically.
 
-## 4. Daily basket reminder
-Coolify → the shop → **Scheduled Tasks → Add**: command `node scripts/cron-basket-recovery.mjs`,
+## 4. Daily emails (basket reminders and review requests)
+Coolify → the shop → **Scheduled Tasks → Add**: command `node scripts/cron-daily.mjs`,
 frequency `0 10 * * *`. (Needs `CRON_SECRET` set.)
 
 ## 5. Point the domain at the server (GoDaddy → DNS)

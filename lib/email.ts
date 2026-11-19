@@ -562,6 +562,162 @@ Stop basket reminders: ${links.unsubscribe}`;
   });
 }
 
+/* ---------------------------------------------------------------------------
+   ORDER SHIPPED
+
+   Sent once, the first time the order is marked as shipped in the admin. The
+   order confirmation promises it ("we will email you again the moment it
+   ships"), so it is a delivery update, not marketing: it always sends.
+   --------------------------------------------------------------------------- */
+export async function sendOrderShipped(order: Order, items: OrderItem[]): Promise<boolean> {
+  const address = order.shippingAddress as Record<string, string> | null;
+  const firstName = address?.name?.trim().split(/\s+/)[0] ?? null;
+  const trackingNumber = order.trackingNumber?.trim() || null;
+  // Only ever link to a real web address: the field is typed by hand.
+  const trackingUrl = safeHttpUrl(order.trackingUrl);
+
+  const rows = items
+    .map(
+      (item) => `<tr><td style="padding:10px 0;border-bottom:1px solid #E3DED6;">
+          <div style="color:${INK};">${escapeHtml(item.productTitle)}</div>
+          <div style="font-size:13px;color:${MUTED};">${escapeHtml(item.variantTitle)} &middot; qty ${item.quantity}</div>
+        </td></tr>`,
+    )
+    .join("");
+
+  const tracking = trackingNumber || trackingUrl
+    ? `<p style="margin:0 0 22px;color:${MUTED};line-height:1.7;">
+        ${trackingNumber ? `Tracking number: <strong style="color:${INK};">${escapeHtml(trackingNumber)}</strong>` : ""}
+      </p>
+      ${trackingUrl ? `<p style="margin:0 0 26px;"><a href="${escapeHtml(trackingUrl)}" style="display:inline-block;background:${TEAL};color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:4px;">Track your parcel</a></p>` : ""}`
+    : "";
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:400;">Your order is on its way</h1>
+    <div style="width:48px;height:1px;background:${COPPER};margin:16px 0 20px;"></div>
+    <p style="margin:0 0 22px;color:${MUTED};line-height:1.7;">
+      ${firstName ? `${escapeHtml(firstName)}, good news:` : "Good news:"} order
+      <strong style="color:${INK};">#${order.number}</strong> has left us and is with the courier.
+    </p>
+    ${tracking}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
+      ${rows}
+    </table>
+    ${
+      address
+        ? `<h2 style="margin:28px 0 8px;font-size:15px;font-weight:600;">Delivering to</h2>
+           <p style="margin:0;color:${MUTED};line-height:1.7;font-size:14px;">
+             ${escapeHtml(address.name)}<br>${escapeHtml(address.line1)}<br>
+             ${address.line2 ? escapeHtml(address.line2) + "<br>" : ""}
+             ${escapeHtml(address.city)}<br>${escapeHtml(address.postcode)}
+           </p>`
+        : ""
+    }
+    <p style="margin:26px 0 0;font-size:13px;color:${MUTED};line-height:1.7;">
+      Something not right when it arrives? Reply to this email, or start a return at
+      <a href="${SITE.url}/returns" style="color:${MUTED};">${SITE.url.replace(/^https?:\/\//, "")}/returns</a>.
+    </p>`;
+
+  const text = `Your order is on its way.
+
+Order #${order.number} has left us and is with the courier.
+${trackingNumber ? `\nTracking number: ${trackingNumber}` : ""}${trackingUrl ? `\nTrack your parcel: ${trackingUrl}` : ""}
+
+${items.map((i) => `${i.productTitle} (${i.variantTitle}) x${i.quantity}`).join("\n")}
+
+Something not right when it arrives? Reply to this email, or start a return at ${SITE.url}/returns`;
+
+  return send({
+    to: order.email,
+    subject: `Your AZMIQ order #${order.number} has shipped`,
+    html: shell(`Order #${order.number} has shipped`, body),
+    text,
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   REVIEW REQUEST
+
+   One email per order, about ten days after it ships, asking how it is going
+   and linking to each product's review form. It carries no offers or
+   discounts - a review bought with an incentive has to be labelled as such -
+   and it honours the same opt-out as basket reminders.
+   --------------------------------------------------------------------------- */
+export async function sendReviewRequest(
+  order: Order,
+  items: OrderItem[],
+  links: { unsubscribe: string; oneClickUnsubscribe: string },
+): Promise<boolean> {
+  const firstName =
+    (order.shippingAddress as Record<string, string> | null)?.name?.trim().split(/\s+/)[0] ?? null;
+
+  // One link per product, however many sizes or colours were bought.
+  const products = [...new Map(items.map((i) => [i.productSlug, i])).values()];
+  const reviewUrl = (slug: string) => `${SITE.url}/products/${encodeURIComponent(slug)}#reviews`;
+
+  const rows = products
+    .map(
+      (item) => `<tr>
+        <td style="padding:12px 0;border-bottom:1px solid #E3DED6;color:${INK};">${escapeHtml(item.productTitle)}</td>
+        <td align="right" style="padding:12px 0;border-bottom:1px solid #E3DED6;white-space:nowrap;">
+          <a href="${reviewUrl(item.productSlug)}" style="color:${TEAL};">Write a review</a>
+        </td>
+      </tr>`,
+    )
+    .join("");
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:400;">How are you finding it?</h1>
+    <div style="width:48px;height:1px;background:${COPPER};margin:16px 0 20px;"></div>
+    <p style="margin:0 0 22px;color:${MUTED};line-height:1.7;">
+      ${firstName ? `${escapeHtml(firstName)}, your` : "Your"} order #${order.number} should have been with
+      you for a little while now. If you have a minute, an honest review helps other people choose,
+      and it helps us make things better. Good or bad, we read every one.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
+      ${rows}
+    </table>
+    <p style="margin:22px 0 0;font-size:13px;color:${MUTED};line-height:1.7;">
+      If something is not right, just reply to this email and we will sort it out.
+    </p>
+    <p style="margin:18px 0 0;font-size:12px;color:${MUTED};line-height:1.7;">
+      This is the only review request we will send about this order.
+      <a href="${links.unsubscribe}" style="color:${MUTED};">Stop these emails</a>.
+    </p>`;
+
+  const text = `How are you finding it?
+
+Your order #${order.number} should have been with you for a little while now. If you have a minute, an honest review helps other people choose. Good or bad, we read every one.
+
+${products.map((i) => `${i.productTitle}: ${reviewUrl(i.productSlug)}`).join("\n")}
+
+If something is not right, just reply to this email and we will sort it out.
+
+This is the only review request we will send about this order.
+Stop these emails: ${links.unsubscribe}`;
+
+  return send({
+    to: order.email,
+    subject: `How is your AZMIQ order?`,
+    html: shell("How are you finding it?", body),
+    text,
+    headers: {
+      "List-Unsubscribe": `<${links.oneClickUnsubscribe}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+}
+
+function safeHttpUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function sendMagicLink(email: string, url: string): Promise<boolean> {
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:400;">Sign in to AZMIQ</h1>
