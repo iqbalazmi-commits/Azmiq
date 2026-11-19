@@ -4,6 +4,10 @@ import Link from "next/link";
 import { Leaf, PackageCheck, RotateCcw, Truck } from "lucide-react";
 import { Breadcrumbs } from "@/components/shop/Breadcrumbs";
 import { Gallery } from "@/components/shop/Gallery";
+import { View3D } from "@/components/shop/View3D";
+import { product3dFor } from "@/lib/product-3d";
+import { PatinaSlider } from "@/components/shop/PatinaSlider";
+import { patinaFor } from "@/lib/patina";
 import { PurchasePanel } from "@/components/shop/PurchasePanel";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ReviewList, ReviewSummary } from "@/components/shop/ReviewList";
@@ -63,6 +67,8 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   const related = relatedProducts(all, product);
 
   const isShoes = product.categorySlugs.includes("shoes");
+  const model3d = product3dFor(product.slug);
+  const patina = patinaFor(product.slug);
   const isApparel = isShoes || product.categorySlugs.includes("leather-jackets");
   // Shoe options read "Natural · UK 8"; the spec table lists each size once.
   const sizeList = [...new Set(product.variants.map((v) => v.title.split(" · ").pop()))].join(", ");
@@ -89,7 +95,10 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
       {/* ------------------------------------------------- BUY BOX */}
       <div className="container-page grid gap-12 pb-24 pt-10 lg:grid-cols-2 lg:gap-20">
-        <Gallery images={product.images} title={product.title} />
+        <div>
+          <Gallery images={product.images} title={product.title} />
+          {model3d ? <View3D model={model3d} title={product.title} /> : null}
+        </div>
 
         <div className="lg:pt-6">
           <p className="eyebrow">{product.finish}</p>
@@ -210,6 +219,13 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
               ))}
             </div>
           </div>
+        </section>
+      ) : null}
+
+      {/* ------------------------------------------------ WATCH IT AGE */}
+      {patina ? (
+        <section className="container-page border-b border-border py-24 md:py-32">
+          <PatinaSlider images={patina} title={product.title} />
         </section>
       ) : null}
 

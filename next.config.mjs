@@ -43,6 +43,12 @@ const nextConfig = {
         source: "/images/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      {
+        // 3D models: cached for a day, not forever, because a rebuilt model
+        // keeps its file name.
+        source: "/models/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400" }],
+      },
     ];
   },
 };
