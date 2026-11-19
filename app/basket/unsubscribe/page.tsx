@@ -5,7 +5,7 @@ import { emailForToken } from "@/lib/basket-recovery";
 import { stopBasketReminders } from "@/lib/actions/basket";
 
 export const metadata: Metadata = {
-  title: "Basket reminders",
+  title: "Reminder emails",
   robots: { index: false, follow: false },
 };
 
@@ -37,25 +37,27 @@ export default async function BasketUnsubscribePage({
       <div className="mx-auto max-w-lg text-center">
         {done ? (
           <>
-            <h1 className="font-serif text-4xl leading-tight text-ink">You will not hear from us about baskets</h1>
+            <h1 className="font-serif text-4xl leading-tight text-ink">Reminder emails are off</h1>
             <hr className="rule-accent mx-auto mt-7" />
             <p className="mt-6 leading-relaxed text-ink-muted">
-              Basket reminders are switched off for {email ? mask(email) : "that address"}, including
-              any future basket. Order receipts and delivery updates still arrive as normal.
+              Basket reminders and review requests are switched off for{" "}
+              {email ? mask(email) : "that address"}, including any future order. Order receipts and
+              delivery updates still arrive as normal.
             </p>
           </>
         ) : email ? (
           <>
-            <h1 className="font-serif text-4xl leading-tight text-ink">Stop basket reminders?</h1>
+            <h1 className="font-serif text-4xl leading-tight text-ink">Stop reminder emails?</h1>
             <hr className="rule-accent mx-auto mt-7" />
             <p className="mt-6 leading-relaxed text-ink-muted">
-              We send at most one reminder when a basket is left at checkout. Stop them for{" "}
-              <strong className="text-ink">{mask(email)}</strong>, now and for any future basket.
+              We send at most one reminder when a basket is left at checkout, and one email asking for a
+              review after an order ships. Stop both for <strong className="text-ink">{mask(email)}</strong>,
+              now and for any future order.
             </p>
             <form action={stopBasketReminders} className="mt-9">
               <input type="hidden" name="token" value={token} />
               <Button type="submit" size="lg">
-                Stop basket reminders
+                Stop reminder emails
               </Button>
             </form>
             <p className="mt-5 text-sm text-ink-muted">

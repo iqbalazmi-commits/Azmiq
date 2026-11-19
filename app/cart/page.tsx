@@ -10,6 +10,8 @@ import { CartCountSync } from "@/components/shop/CookieSync";
 import { removeCartItem, updateCartItem } from "@/lib/actions/cart";
 import { formatMoney } from "@/lib/money";
 import { MAX_LINE_QUANTITY } from "@/lib/cart";
+import { FreeDeliveryBar } from "@/components/shop/FreeDeliveryBar";
+import { shippingOptionsFor } from "@/lib/shipping";
 
 export const metadata: Metadata = {
   title: "Your basket",
@@ -25,6 +27,12 @@ export default async function CartPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const [cart, params] = await Promise.all([getCart(), searchParams]);
+  // The free-delivery nudge only makes a like-for-like promise for a UK basket
+  // in pounds: the threshold lives on the UK rate, in GBP.
+  const ukFreeOver =
+    cart.currency === "GBP" && cart.country === "GB" && cart.lines.length > 0
+      ? ((await shippingOptionsFor("GB")).find((o) => o.freeOver !== null)?.freeOver ?? null)
+      : null;
   const notice = restoreNotice(params);
 
   if (cart.lines.length === 0) {
@@ -57,6 +65,15 @@ export default async function CartPage({
 
       <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_22rem] lg:gap-16">
         <section aria-label="Basket contents">
+          {ukFreeOver ? (
+            <div className="mb-8">
+              <FreeDeliveryBar
+                subtotal={cart.totals.subtotal - cart.totals.discountTotal}
+                freeOver={ukFreeOver}
+                currency={cart.currency}
+              />
+            </div>
+          ) : null}
           <ul className="divide-y divide-border border-y border-border">
             {cart.lines.map((line) => (
               <li key={line.id} className="grid grid-cols-[5.5rem_1fr] gap-5 py-6 sm:grid-cols-[7rem_1fr]">

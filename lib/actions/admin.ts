@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import * as t from "@/db/schema";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createAdminSession, getCurrentAdmin, hashPassword, verifyPassword } from "@/lib/auth";
 import { stripe, stripeConfigured } from "@/lib/stripe";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendOrderShipped } from "@/lib/email";
 import { recordServerPurchase } from "@/lib/analytics-server";
 import { parseMoneyInput } from "@/lib/money";
 import { slugify } from "@/lib/utils";
@@ -689,19 +689,34 @@ export async function fulfilOrder(_prev: AdminResult, formData: FormData): Promi
   const trackingUrl = String(formData.get("trackingUrl") ?? "").trim();
   if (!id) return { ok: false, error: "Missing order." };
 
-  await db
+  const tracking = {
+    trackingNumber: trackingNumber || null,
+    trackingUrl: trackingUrl || null,
+    updatedAt: new Date(),
+  };
+
+  // First shipment: claim it in one statement (only while unshipped), so a
+  // double-click or two open tabs can never email the customer twice.
+  const [shipped] = await db
     .update(t.orders)
-    .set({
-      status: "fulfilled",
-      fulfillmentStatus: "fulfilled",
-      trackingNumber: trackingNumber || null,
-      trackingUrl: trackingUrl || null,
-      updatedAt: new Date(),
-    })
-    .where(eq(t.orders.id, id));
+    .set({ ...tracking, status: "fulfilled", fulfillmentStatus: "fulfilled", shippedAt: new Date() })
+    .where(and(eq(t.orders.id, id), ne(t.orders.fulfillmentStatus, "fulfilled"), isNull(t.orders.shippedAt)))
+    .returning();
 
   revalidatePath("/admin/orders");
-  return { ok: true, message: "Marked as shipped." };
+  revalidatePath(`/admin/orders/${id}`);
+
+  if (!shipped) {
+    // Already shipped: saving again only corrects the tracking details.
+    await db.update(t.orders).set(tracking).where(eq(t.orders.id, id));
+    return { ok: true, message: "Tracking details updated." };
+  }
+
+  const items = await db.select().from(t.orderItems).where(eq(t.orderItems.orderId, id));
+  const emailed = await sendOrderShipped(shipped, items).catch(() => false);
+  return emailed
+    ? { ok: true, message: "Marked as shipped, and the customer has been emailed." }
+    : { ok: true, message: "Marked as shipped, but the shipping email could not be sent." };
 }
 
 export async function refundOrder(_prev: AdminResult, formData: FormData): Promise<AdminResult> {

@@ -243,6 +243,12 @@ export const orders = pgTable("orders", {
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   trackingNumber: text("tracking_number"),
   trackingUrl: text("tracking_url"),
+  /** First time the order was marked as shipped; the shipped email goes then,
+      and the review request is timed from it. Null on orders shipped before
+      these emails existed, so nobody is emailed about an old order. */
+  shippedAt: timestamp("shipped_at", { withTimezone: true }),
+  /** One review request per order, at most. */
+  reviewRequestSentAt: timestamp("review_request_sent_at", { withTimezone: true }),
   customerNote: text("customer_note"),
   internalNote: text("internal_note"),
   // Abandoned-basket recovery. The token is what the reminder links to; it is
@@ -261,8 +267,9 @@ export const orders = pgTable("orders", {
   uniqueIndex("orders_recovery_token_idx").on(t.recoveryToken),
 ]);
 
-/** Addresses that asked not to receive basket reminders. Keyed by address
-    rather than by order, so opting out once covers every future basket too. */
+/** Addresses that asked not to receive follow-up emails: basket reminders and
+    review requests. Keyed by address rather than by order, so opting out once
+    covers every future order too. Receipts and delivery updates always send. */
 export const emailSuppressions = pgTable("email_suppressions", {
   email: text("email").primaryKey(),              // always stored lowercase
   reason: text("reason").notNull().default("basket_reminder_unsubscribe"),
