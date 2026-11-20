@@ -50,6 +50,13 @@
       "when": 1795116656263,
       "tag": "0006_order_follow_up_emails",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795120256263,
+      "tag": "0007_toys_squishy_cow",
+      "breakpoints": true
     }
   ]
 }

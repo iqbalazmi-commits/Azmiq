@@ -13,7 +13,8 @@
 
    Hand edits since the last build (carry them over if you rebuild): the
    rebranded names, the photo refresh (removed and reordered gallery images)
-   and the Shoes category with its two Kolhapuri chappals, seeded as drafts.
+   and the Shoes category with its two Kolhapuri chappals, seeded as drafts,
+   and the Toys category with the Bluebell squishy cow.
    Live databases get the same changes from db/migrations.
    =========================================================================== */
 
@@ -47,6 +48,8 @@ export type SeedProduct = {
   material?: string;
   /** Drinkware is food-grade; apparel is not. Defaults to true. */
   foodGrade?: boolean;
+  /** Made by hand. Defaults to true; bought-in toys are not. */
+  handcrafted?: boolean;
   finish: string;
   dimensions: string | null;
   weightGrams: number | null;
@@ -111,6 +114,12 @@ export const CATEGORIES = [
     title: "Shoes",
     subtitle: "Kolhapuri chappals, handmade",
     description: "Kolhapuri chappals for men and women: open-toe leather sandals cut, stitched and braided by hand in the tradition of Kolhapur, India. Comfortable on a hot day, smart enough for a wedding.",
+  },
+  {
+    slug: "toys",
+    title: "Toys",
+    subtitle: "Small joys to squeeze and give",
+    description: "Fun little toys for desks, pockets and party bags. Soft to squeeze, easy to give and priced as a small treat.",
   },
 ];
 
@@ -660,6 +669,34 @@ export const CATALOGUE: SeedProduct[] = [
       { sku: "AZMIQ-KOLW-TAN-6", title: "UK 6", priceGbp: 3900, inventory: 0 },
       { sku: "AZMIQ-KOLW-TAN-7", title: "UK 7", priceGbp: 3900, inventory: 0 },
       { sku: "AZMIQ-KOLW-TAN-8", title: "UK 8", priceGbp: 3900, inventory: 0 },
+    ],
+  },
+  {
+    slug: "squishy-cow",
+    title: "Bluebell · Shimmering Highland Squishy Cow",
+    seoTitle: "Squishy Cow Toy | Sparkly Blue Highland Cow Squeeze Toy",
+    subtitle: "Squeeze it. Watch it sparkle.",
+    summary: "A soft, stretchy squishy cow with a see-through blue body full of glitter. Squeeze it, squish it and watch it pop back into shape.",
+    description: "Meet Bluebell, a pocket-sized Highland cow with a see-through blue body full of shimmering glitter. Give her a squeeze and she squishes softly in your hand, then pops back into shape, ready for the next one.\n\n• Soft, stretchy and satisfying to squeeze\n\n• See-through blue body that sparkles in the light\n\n• Shiny horns, little ears, clear legs and a cute cream snout\n\n• Stands on her own four legs on a desk, shelf or bedside table\n\n• About 10 × 7 × 4.5 cm and 110g, so she fits in a hand or a pocket\n\nKeep her on your desk for busy days, squeeze her on long calls, or give her as a birthday treat, a party bag filler or a little gift for anyone who loves cows.\n\nNot suitable for children under 3 years: contains small parts.",
+    careInstructions: "Wipe clean with a damp cloth and let her air-dry.\n\nKeep her away from sharp objects, pets, direct sun and heat, and never put her in a microwave or oven. Squeeze her, but do not bite, pierce or overstretch her.\n\nIf the skin ever splits, stop using her and throw her away. Not suitable for children under 3 years: contains small parts. Adult supervision recommended.",
+    material: "Soft, stretchy rubber",
+    foodGrade: false,
+    handcrafted: false,
+    finish: "Glitter-filled, see-through blue",
+    dimensions: "10 × 7 × 4.5 cm",
+    weightGrams: 110,
+    leakProof: false,
+    categories: ["toys"],
+    position: 18,
+    images: [
+      { file: "/images/products/squishy-cow/00-azmiq-studio.jpg", alt: "Bluebell, the blue squishy Highland cow, side view on white with the AZMIQ logo", kind: "hero", width: 1536, height: 1920 },
+      { file: "/images/products/squishy-cow/01-front.jpg", alt: "Front view of the blue squishy cow, showing its eyes, cream snout and shiny horns", kind: "gallery", width: 1536, height: 1920 },
+      { file: "/images/products/squishy-cow/02-three-quarter.jpg", alt: "The blue squishy cow from the front left, showing its glittery, bubbly texture", kind: "gallery", width: 1536, height: 1920 },
+      { file: "/images/products/squishy-cow/03-on-a-rock.jpg", alt: "The sparkly blue squishy cow standing on a mossy rock in a garden", kind: "lifestyle", width: 1536, height: 1920 },
+      { file: "/images/products/squishy-cow/04-features.jpg", alt: "Feature guide for the squishy cow: soft and squeezable, sparkly texture, cute horns and ears, and clear legs", kind: "gallery", width: 1536, height: 1920 },
+    ],
+    variants: [
+      { sku: "AZMIQ-TOY-COW-BLU", title: "Blue", priceGbp: 299, inventory: 15 },
     ],
   },
 ];

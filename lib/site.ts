@@ -28,6 +28,7 @@ export const NAV = [
   { title: "Jugs & Pitchers", href: "/collections/copper-jugs-pitchers" },
   { title: "Kitchen", href: "/collections/kitchen-utensils" },
   { title: "Shoes", href: "/collections/shoes" },
+  { title: "Toys", href: "/collections/toys" },
   { title: "Gifts", href: "/collections/wellness-gift-sets" },
 ] as const;
 
@@ -40,6 +41,7 @@ export const FOOTER_LINKS = {
     { title: "Leather jackets", href: "/collections/leather-jackets" },
     { title: "Kitchen utensils", href: "/collections/kitchen-utensils" },
     { title: "Kolhapuri shoes", href: "/collections/shoes" },
+    { title: "Toys", href: "/collections/toys" },
   ],
   help: [
     { title: "Shipping", href: "/policies/shipping" },

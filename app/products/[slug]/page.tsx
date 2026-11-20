@@ -67,6 +67,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   const related = relatedProducts(all, product);
 
   const isShoes = product.categorySlugs.includes("shoes");
+  const isToy = product.categorySlugs.includes("toys");
   const model3d = product3dFor(product.slug);
   const patina = patinaFor(product.slug);
   const isApparel = isShoes || product.categorySlugs.includes("leather-jackets");
@@ -123,7 +124,14 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
           {/* Reassurance, stated plainly and only once. */}
           <ul className="mt-8 grid gap-3 border-t border-border pt-7 text-sm sm:grid-cols-2">
-            {(isApparel
+            {(isToy
+              ? [
+                  { Icon: Truck, text: "£5 UK delivery, free over £50" },
+                  { Icon: RotateCcw, text: "14-day returns, free" },
+                  { Icon: PackageCheck, text: "In stock, posted from the UK" },
+                  { Icon: Leaf, text: "Small enough for a pocket" },
+                ]
+              : isApparel
               ? [
                   { Icon: Truck, text: "£5 UK delivery, free over £50" },
                   { Icon: RotateCcw, text: "14-day returns, free" },
@@ -163,7 +171,15 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <h2 className="font-serif text-2xl text-ink">Specification</h2>
             <hr className="rule-accent my-5" />
             <dl className="divide-y divide-border border-y border-border">
-              {(isShoes
+              {(isToy
+                ? [
+                    ["Material", product.material],
+                    ["Finish", product.finish],
+                    ["Size", product.dimensions],
+                    ["Weight", product.weightGrams ? `${product.weightGrams}g` : null],
+                    ["Age", "Not suitable for children under 3 years"],
+                  ]
+                : isShoes
                 ? [
                     ["Material", product.material],
                     ["Finish", product.finish],
@@ -236,7 +252,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             <div>
               <p className="eyebrow">Looking after it</p>
               <h2 className="mt-3 font-serif text-3xl text-ink">
-                {isApparel ? "Leather care" : "Copper care"}
+                {isToy ? "Toy care" : isApparel ? "Leather care" : "Copper care"}
               </h2>
               <hr className="rule-accent mt-6" />
             </div>
@@ -246,7 +262,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
                   {paragraph}
                 </p>
               ))}
-              {!isApparel ? (
+              {!isApparel && !isToy ? (
                 <Link
                   href="/copper-care"
                   className="mt-6 inline-block text-sm text-ink-brand underline underline-offset-4"

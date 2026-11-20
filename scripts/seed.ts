@@ -79,7 +79,7 @@ async function main() {
         capacityMl: item.capacityMl ?? null,
         leakProof: item.leakProof,
         foodGrade: item.foodGrade ?? true,
-        handcrafted: true,
+        handcrafted: item.handcrafted ?? true,
         status: item.status ?? "active",
         featured: item.featured ?? false,
         position: index,
