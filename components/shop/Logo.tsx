@@ -4,59 +4,46 @@ import { SITE } from "@/lib/site";
 /* ===========================================================================
    AZMIQ LOGO
 
-   The brand logo, used exactly as supplied (public/brand/azmiq-logo.png).
-   It ships with its own background, so it is shown in a rounded tile with a
-   hairline edge — framed deliberately rather than floated on the surface.
+   The black AZMIQ wordmark (public/brand/azmiq-wordmark.png), cut out of the
+   supplied artwork with a transparent background so it sits straight on the
+   page. It is drawn for light grounds; every place it appears is light.
+   The browser-tab icon (app/icon.png) is the "AZ" from the same artwork.
    =========================================================================== */
 
-const LOGO_SRC = "/brand/azmiq-logo.png";
+const WORDMARK_SRC = "/brand/azmiq-wordmark.png";
+/** The artwork's own proportions, so the logo never stretches. */
+const WORDMARK_RATIO = 1148 / 307;
 
-export function LogoMark({ size = 44, className }: { size?: number; className?: string }) {
+/** The wordmark at a given height, in pixels. */
+export function Wordmark({ height = 26, className, decorative = false }: { height?: number; className?: string; decorative?: boolean }) {
   return (
     <Image
-      src={LOGO_SRC}
-      alt=""
-      width={size}
-      height={size}
+      src={WORDMARK_SRC}
+      alt={decorative ? "" : `${SITE.name}`}
+      aria-hidden={decorative ? true : undefined}
+      width={Math.round(height * WORDMARK_RATIO)}
+      height={height}
       priority
-      className={`rounded-lg ${className ?? ""}`}
-      aria-hidden="true"
+      className={className}
     />
   );
 }
 
-/** Logo tile, optionally with the tagline. `on` picks the surrounding ground. */
+/** The logo, optionally with the tagline beneath it. */
 export function Logo({
-  on = "brand",
   withTagline = false,
   className,
 }: {
+  /** Kept for existing callers; the wordmark is made for light grounds. */
   on?: "brand" | "footer" | "light";
   withTagline?: boolean;
   className?: string;
 }) {
-  const ring =
-    on === "light"
-      ? "ring-[color-mix(in_srgb,var(--color-accent-gold)_45%,transparent)]"
-      : "ring-white/15";
-  const taglineColour =
-    on === "light" ? "text-ink-muted" : "text-ink-on-inverse-muted";
-  const size = withTagline ? 50 : 46;
-
   return (
-    <span className={`flex items-center gap-3 ${className ?? ""}`}>
-      <Image
-        src={LOGO_SRC}
-        alt={`${SITE.name} logo`}
-        width={size}
-        height={size}
-        priority
-        className={`rounded-lg ring-1 ${ring}`}
-      />
+    <span className={`flex flex-col items-start gap-2.5 ${className ?? ""}`}>
+      <Wordmark height={withTagline ? 30 : 26} className="h-[22px] w-auto sm:h-[26px]" />
       {withTagline ? (
-        <span className={`text-2xs uppercase tracking-widest ${taglineColour}`}>
-          {SITE.tagline}
-        </span>
+        <span className="text-2xs uppercase tracking-widest text-ink-muted">{SITE.tagline}</span>
       ) : null}
     </span>
   );
